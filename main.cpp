@@ -96,19 +96,19 @@ public:
 
     //fcț membru pentru desfășurarea jocului
     void startJoc(std::istream& in) {
-        std::cout << "=== Joc Kahoot ===\n";
+        std::cout << "--- Joc Kahoot ---\n";
         for (auto& user : utilizatori) {
-            std::cout << "\n>> Jucător: " << user.getNume() << "\n";
+            std::cout << "\n>> Jucator: " << user.getNume() << "\n";
             for (const auto& intrebare : chestionar.getIntrebari()) {
                 std::cout << intrebare;
-                std::cout << "Răspunsul tău (1-4): ";
                 int r;
                 in >> r;
+                std::cout << "Răspunsul ales: " << r << " -> ";
                 if (intrebare.verificaRaspuns(r - 1)) {
                     std::cout << "Corect!\n";
                     user.adaugaScor(10);
                 } else {
-                    std::cout << "Greșit!\n";
+                    std::cout << "Gresit!\n";
                 }
             }
             std::cout << "Scor final: " << user.getScor() << "\n";
@@ -116,7 +116,7 @@ public:
     }
 
     friend std::ostream& operator<<(std::ostream& out, const JocKahoot& j) {
-        out << "\n=== Clasament final ===\n";
+        out << "\n--- Clasament final ---\n";
         for (const auto& u : j.utilizatori)
             out << u << "\n";
         return out;
