@@ -35,7 +35,7 @@ public:
     bool verificaRaspuns(int r) const { return r == raspunsCorect; }
 
     friend std::ostream& operator<<(std::ostream& out, const Intrebare& i) {
-        out << "Întrebare: " << i.text << "\n";
+        out << "Intrebare: " << i.text << "\n";
         for (size_t j = 0; j < i.variante.size(); ++j)
             out << "  " << j + 1 << ". " << i.variante[j] << "\n";
         return out;
@@ -103,7 +103,7 @@ public:
                 std::cout << intrebare;
                 int r;
                 in >> r;
-                std::cout << "Răspunsul ales: " << r << " -> ";
+                std::cout << "Raspunsul ales: " << r << " -> ";
                 if (intrebare.verificaRaspuns(r - 1)) {
                     std::cout << "Corect!\n";
                     user.adaugaScor(10);
