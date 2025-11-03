@@ -3,6 +3,7 @@
 #include <string>
 #include <fstream>
 #include <algorithm>
+#include <random>
 
 class Utilizator{
 
@@ -72,7 +73,9 @@ public:
 
     //funcție membru pt amestecarea întrebărilor
     void amestecaIntrebari() {
-        std::random_shuffle(intrebari.begin(), intrebari.end());
+        std::random_device rd; // pentru seed
+        std::mt19937 g(rd());
+        std::shuffle(intrebari.begin(), intrebari.end(), g);
     }
 
     friend std::ostream& operator<<(std::ostream& out, const Quiz& c) {
