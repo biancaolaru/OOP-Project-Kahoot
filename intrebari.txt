@@ -1,0 +1,19 @@
+3
+Care este capitala Frantei?
+Paris
+Londra
+Berlin
+Roma
+1
+Cat face 2+2?
+3
+4
+5
+6
+2
+Ce limbaj foloseste Kahoot?
+C++
+Python
+Java
+HTML
+2
