@@ -170,7 +170,6 @@ int main() {
         joc.adaugaUtilizator(Utilizator(nume));
     }
 
-    //desfășurarea jocului
     joc.startJoc(fin);
     std::cout << joc;
 
