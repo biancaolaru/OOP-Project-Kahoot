@@ -67,14 +67,14 @@ public:
     //destructor
     ~Quiz() = default;
 
-    void adaugaIntrebare(const Intrebare& i) { intrebari.push_back(i); }
+    //void adaugaIntrebare(const Intrebare& i) { intrebari.push_back(i); }
 
     const std::vector<Intrebare>& getIntrebari() const { return intrebari; }
 
     //funcție membru pt amestecarea întrebărilor
     void amestecaIntrebari() {
         std::random_device rd; // pentru seed
-        std::mt19937 g(rd());
+        std::mt19937 g(rd()); //???
         std::shuffle(intrebari.begin(), intrebari.end(), g);
     }
 
