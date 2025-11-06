@@ -23,22 +23,49 @@ public:
     }
 };
 
+enum class TipIntrebare { Simpla, Multipla, AdevaratFals };
+
 class Intrebare{
 
     std::string text;
     std::vector<std::string> variante;
     int raspunsCorect;
+    std::vector<int> raspunsuriCorecte;
+    TipIntrebare tip;
 
 public:
-    Intrebare(const std::string& text = "", const std::vector<std::string>& variante = {}, int raspunsCorect = 0)
-        : text(text), variante(variante), raspunsCorect(raspunsCorect) {}
+    //constructor pt intrebarile simple sau adev/fals
+    Intrebare(const std::string& text, const std::vector<std::string>& variante, int raspunsCorect, TipIntrebare tip = TipIntrebare::Simpla)
+        : text(text), variante(variante), tip(tip), raspunsCorect(raspunsCorect) {}
 
-    bool verificaRaspuns(int r) const { return r == raspunsCorect; }
+    //constructor pt intrebarile cu raspuns multiplu
+    Intrebare(const std::string& text, const std::vector<std::string>& variante, std::vector<int> raspunsuriCorecte)
+        : text(text), variante(variante), tip(TipIntrebare::Multipla), raspunsuriCorecte(raspunsuriCorecte) {}
+
+    TipIntrebare getTip() const { return tip; }
+
+    bool verificaRaspuns(const std::vector<int>& r) const {
+        if (tip == TipIntrebare::Simpla || tip == TipIntrebare::AdevaratFals) {
+            return !r.empty() && r[0] == raspunsCorect;
+        }
+        else {
+            if (r.size() != raspunsuriCorecte.size()) return false;
+            std::vector<int> tempR= r;
+            std::sort(tempR.begin(), tempR.end());
+            std::vector<int> tempCorect = raspunsuriCorecte;
+            std::sort(tempCorect.begin(), tempCorect.end());
+            return tempR == tempCorect;
+        }
+    }
 
     friend std::ostream& operator<<(std::ostream& out, const Intrebare& i) {
         out << "Intrebare: " << i.text << "\n";
         for (size_t j = 0; j < i.variante.size(); ++j)
             out << "  " << j + 1 << ". " << i.variante[j] << "\n";
+
+        if (i.tip == TipIntrebare::AdevaratFals)    out << "Intrebarea este de tip Adevarat sau Fals\n";
+        if (i.tip == TipIntrebare::Multipla)        out<< "Intrebarea are raspunsuri multiple\n";
+
         return out;
     }
 };
@@ -73,13 +100,13 @@ public:
 
     //funcție membru pt amestecarea întrebărilor
     void amestecaIntrebari() {
-        std::random_device rd; // pentru seed
-        std::mt19937 g(rd()); //???
+        static std::random_device rd; // pentru seed
+        static std::mt19937 g(rd()); //statice
         std::shuffle(intrebari.begin(), intrebari.end(), g);
     }
 
     friend std::ostream& operator<<(std::ostream& out, const Quiz& c) {
-        out << "Chestionar cu " << c.intrebari.size() << " întrebări:\n";
+        out << "Chestionar cu " << c.intrebari.size() << " intrebari:\n";
         for (const auto& i : c.intrebari)
             out << i << "\n";
         return out;
@@ -104,15 +131,36 @@ public:
             std::cout << "\n>> Jucator: " << user.getNume() << "\n";
             for (const auto& intrebare : chestionar.getIntrebari()) {
                 std::cout << intrebare;
-                int r;
-                in >> r;
-                std::cout << "Raspunsul ales: " << r << " -> ";
-                if (intrebare.verificaRaspuns(r - 1)) {
-                    std::cout << "Corect!\n";
-                    user.adaugaScor(10);
-                } else {
-                    std::cout << "Gresit!\n";
+                if (intrebare.getTip() == TipIntrebare::Simpla || intrebare.getTip() == TipIntrebare::AdevaratFals) {
+                    int r;
+                    in >> r;
+                    std::cout << "Raspunsul ales: " << r << " -> ";
+                    if (intrebare.verificaRaspuns(r - 1)) {
+                        std::cout << "Corect!\n";
+                        user.adaugaScor(10);
+                    } else {
+                        std::cout << "Gresit!\n";
+                    }
                 }
+                else if (intrebare.getTip() == TipIntrebare::Multipla){
+                    int nrRaspunsuri;
+                    std::cout << "Cate raspunsuri vrei sa introduci?\n";
+                    std::cin >> nrRaspunsuri;
+                    std::vector<int> r(nrRaspunsuri);
+                    std::cout<< "Introdu raspunsurile tale separate printr-un spatiu\n";
+                    for (int j = 0; j < nrRaspunsuri; ++j) { in >> r[j]; }
+                    std::cout << "Raspunsurile alese: ";
+                    for (auto x : r) std::cout << x << " ";
+                    std::cout << "-> ";
+                    if (intrebare.verificaRaspuns(r)) {
+                        std::cout << "Corect!\n";
+                        user.adaugaScor(10);
+                    }
+                    else {
+                        std::cout << "Gresit!\n";
+                    }
+                }
+
             }
             std::cout << "Scor final: " << user.getScor() << "\n";
         }
@@ -152,6 +200,7 @@ int main() {
     }
 
     Quiz c(intrebari);
+    std::cout << c << std::endl;
     c.amestecaIntrebari();
 
 
