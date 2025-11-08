@@ -116,6 +116,34 @@ public:
     }
 };
 
+class Timer {
+    int durata;
+
+public:
+    Timer(int secunde = 10) : durata(secunde) {}
+
+    void start() const {
+        using namespace std::chrono;
+        auto start = steady_clock::now();
+
+        for (int t = durata; t > 0; --t) {
+            std::cout << "Timp ramas: " << std::setw(2) << t << " secunde" << std::flush;
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+
+        std::cout << "\r Timpul a expirat!\n";
+    }
+
+    bool TimpExpirat(auto startMoment) const {
+        using namespace std::chrono;
+        auto acum = steady_clock::now();
+        auto elapsed = duration_cast<seconds>(acum - startMoment).count();
+        return elapsed >= durata;
+    }
+
+    int getDurata() const { return durata; }
+
+};
 
 class JocKahoot{
 
@@ -133,7 +161,13 @@ public:
         for (auto& user : utilizatori) {
             std::cout << "\n>> Jucator: " << user.getNume() << "\n";
             for (const auto& intrebare : chestionar.getIntrebari()) {
-                std::cout << intrebare;
+                std::cout << intrebare << "\n";
+
+                Timer t(10);
+                auto startMoment = std::chrono::steady_clock::now();
+
+                t.start();
+
                 if (intrebare.getTip() == TipIntrebare::Simpla || intrebare.getTip() == TipIntrebare::AdevaratFals) {
                     int r;
                     std::cout << "Introdu varianta aleasa: ";
@@ -178,34 +212,7 @@ public:
     }
 };
 
-class Timer {
-    int durata;
 
-public:
-    Timer(int secunde = 10) : durata(secunde) {}
-
-    void start() const {
-        using namespace std::chrono;
-        auto start = steady_clock::now();
-
-        for (int t = durata; t > 0; --t) {
-            std::cout << "Timp ramas: " << std::setw(2) << t << " secunde" << std::flush;
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-        }
-
-        std::cout << "\r Timpul a expirat!\n";
-    }
-
-    bool TimpExpirat(auto startMoment) const {
-        using namespace std::chrono;
-        auto acum = steady_clock::now();
-        auto elapsed = duration_cast<seconds>(acum - startMoment).count();
-        return elapsed >= durata;
-    }
-
-    int getDurata() const { return durata; }
-
-};
 
 int main() {
     std::ifstream f("intrebari.txt");
