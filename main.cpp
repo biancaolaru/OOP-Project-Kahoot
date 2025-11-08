@@ -4,6 +4,9 @@
 #include <fstream>
 #include <algorithm>
 #include <random>
+#include <chrono>
+#include <thread>
+#include <iomanip>
 
 class Utilizator{
 
@@ -34,7 +37,7 @@ class Intrebare{
     TipIntrebare tip;
 
 public:
-    //constructor pt intrebarile simple sau adev/fals
+    //constructor pt intrebarile simple sau adevarat/fals
     Intrebare(const std::string& text, const std::vector<std::string>& variante, int raspunsCorect, TipIntrebare tip = TipIntrebare::Simpla)
         : text(text), variante(variante), tip(tip), raspunsCorect(raspunsCorect) {}
 
@@ -77,7 +80,7 @@ class Quiz{
 
 public:
     //constructor cu params
-    Quiz(const std::vector<Intrebare>& intrebari = {}) : intrebari(intrebari) {}
+    explicit Quiz(const std::vector<Intrebare>& intrebari = {}) : intrebari(intrebari) {}
 
     //constructor de copiere
     Quiz(const Quiz& other) {
@@ -120,7 +123,7 @@ class JocKahoot{
     Quiz chestionar;
 
 public:
-    JocKahoot(const Quiz& c) : chestionar(c) {}
+    explicit JocKahoot(const Quiz& c) : chestionar(c) {}
 
     void adaugaUtilizator(const Utilizator& u) { utilizatori.push_back(u); }
 
@@ -133,9 +136,10 @@ public:
                 std::cout << intrebare;
                 if (intrebare.getTip() == TipIntrebare::Simpla || intrebare.getTip() == TipIntrebare::AdevaratFals) {
                     int r;
-                    in >> r;
+                    std::cout << "Introdu varianta aleasa: ";
+                    std::cin >> r;
                     std::cout << "Raspunsul ales: " << r << " -> ";
-                    if (intrebare.verificaRaspuns(r - 1)) {
+                    if (intrebare.verificaRaspuns(std::vector<int>{r - 1})) {
                         std::cout << "Corect!\n";
                         user.adaugaScor(10);
                     } else {
@@ -174,6 +178,34 @@ public:
     }
 };
 
+class Timer {
+    int durata;
+
+public:
+    Timer(int secunde = 10) : durata(secunde) {}
+
+    void start() const {
+        using namespace std::chrono;
+        auto start = steady_clock::now();
+
+        for (int t = durata; t > 0; --t) {
+            std::cout << "Timp ramas: " << std::setw(2) << t << " secunde" << std::flush;
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+
+        std::cout << "\r Timpul a expirat!\n";
+    }
+
+    bool TimpExpirat(auto startMoment) const {
+        using namespace std::chrono;
+        auto acum = steady_clock::now();
+        auto elapsed = duration_cast<seconds>(acum - startMoment).count();
+        return elapsed >= durata;
+    }
+
+    int getDurata() const { return durata; }
+
+};
 
 int main() {
     std::ifstream f("intrebari.txt");
