@@ -10,99 +10,67 @@
 #include <iomanip>
 #include <sstream>
 #include <optional>
-#include <mutex>
+#include <limits>
 #include <cctype>
-
-#if defined(__unix__) || defined(__APPLE__)
-#include <termios.h>
-#include <unistd.h>
-#include <cerrno>
-#define HAS_POSIX_TERMINAL 1
-#else
-#define HAS_POSIX_TERMINAL 0
-#endif
-
-#if defined(_WIN32)
-#include <windows.h>
-#endif
 
 namespace {
 
-std::mutex& consoleMutex() {
-    static std::mutex m;
-    return m;
+std::string trim(const std::string& value) {
+    const auto start = value.find_first_not_of(" \t\r\n");
+    if (start == std::string::npos) return "";
+    const auto end = value.find_last_not_of(" \t\r\n");
+    return value.substr(start, end - start + 1);
 }
 
-bool supportsAnsiCursorControl() {
-    static const bool supported = []() {
-#if HAS_POSIX_TERMINAL
-        return true;
-#elif defined(_WIN32)
-        HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-        if (handle == INVALID_HANDLE_VALUE || handle == nullptr) return false;
-        DWORD mode = 0;
-        if (!GetConsoleMode(handle, &mode)) return false;
-        if (mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING) return true;
-        DWORD newMode = mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-        if (!SetConsoleMode(handle, newMode)) return false;
-        return true;
-#else
-        return false;
-#endif
-    }();
-    return supported;
+std::string toUpper(std::string text) {
+    for (auto& ch : text) ch = static_cast<char>(std::toupper(static_cast<unsigned char>(ch)));
+    return text;
 }
 
 std::optional<std::vector<int>> parseAnswerIndices(const std::string& raw, size_t maxOptions) {
     std::istringstream iss(raw);
     std::vector<int> indices;
     int value;
-
     while (iss >> value) {
-        if (value < 1 || value > static_cast<int>(maxOptions)) {
-            return std::nullopt;
-        }
+        if (value < 1 || value > static_cast<int>(maxOptions)) return std::nullopt;
         indices.push_back(value - 1);
     }
-
     if (indices.empty()) return std::nullopt;
     if (iss.fail() && !iss.eof()) return std::nullopt;
     return indices;
 }
 
-#if HAS_POSIX_TERMINAL
-class TerminalModeGuard {
-    termios initial{};
-    bool active = false;
+size_t selecteazaNumarIntrebari(size_t totalDisponibile) {
+    if (totalDisponibile == 0) return 0;
 
-public:
-    TerminalModeGuard() {
-        if (!::isatty(STDIN_FILENO)) return;
-        if (tcgetattr(STDIN_FILENO, &initial) != 0) return;
-        termios raw = initial;
-        raw.c_lflag &= ~(ICANON | ECHO);
-        raw.c_cc[VMIN] = 0;
-        raw.c_cc[VTIME] = 0;
-        if (tcsetattr(STDIN_FILENO, TCSANOW, &raw) != 0) return;
-        active = true;
+    std::cout << "\nCate intrebari doresti sa joci (1-" << totalDisponibile << ")? ";
+    size_t dorite = totalDisponibile;
+    size_t input = 0;
+    if (std::cin >> input && input >= 1 && input <= totalDisponibile) {
+        dorite = input;
     }
-
-    ~TerminalModeGuard() {
-        if (active) {
-            tcsetattr(STDIN_FILENO, TCSANOW, &initial);
-        }
+    else {
+        std::cout << "Valoare invalida. Se vor folosi toate intrebarile disponibile.\n";
     }
-
-    bool isActive() const { return active; }
-};
-#endif
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    return dorite;
+}
 
 }
+
+struct RezultatIntrebare {
+    std::string intrebare;
+    std::vector<int> raspunsuriAlese;
+    bool corecta = false;
+    bool sarita = false;
+};
 
 class Utilizator{
 
     std::string nume;
     int scor;
+    bool ajutorDisponibil = true;
+    std::vector<RezultatIntrebare> istoric;
 
 public:
     Utilizator(const std::string& nume = "Anonim", int scor = 0) : nume(nume), scor(scor) {}
@@ -110,6 +78,37 @@ public:
     void adaugaScor(int puncte) { scor += puncte; }
     int getScor() const { return scor; }
     std::string getNume() const { return nume; }
+    bool poateFolosiAjutor() const { return ajutorDisponibil; }
+    void consumaAjutor() { ajutorDisponibil = false; }
+    void adaugaRezultat(const RezultatIntrebare& rez) { istoric.push_back(rez); }
+
+    void afiseazaIstoric() const {
+        std::cout << "\n   >> Raport pentru " << nume << " (" << scor << " puncte)\n";
+        if (istoric.empty()) {
+            std::cout << "      Nu exista intrebari parcurse in aceasta sesiune.\n";
+            return;
+        }
+        for (size_t i = 0; i < istoric.size(); ++i) {
+            const auto& rez = istoric[i];
+            std::cout << "      " << i + 1 << ". " << rez.intrebare << "\n";
+            if (rez.sarita) {
+                std::cout << "         - Intrebarea a fost sarita\n";
+                continue;
+            }
+            if (rez.raspunsuriAlese.empty()) {
+                std::cout << "         - Nu a fost introdus niciun raspuns\n";
+            }
+            else {
+                std::cout << "         - Variante alese: ";
+                for (size_t j = 0; j < rez.raspunsuriAlese.size(); ++j) {
+                    std::cout << rez.raspunsuriAlese[j] + 1;
+                    if (j + 1 < rez.raspunsuriAlese.size()) std::cout << ", ";
+                }
+                std::cout << "\n";
+            }
+            std::cout << "         - Rezultat: " << (rez.corecta ? "Corect" : "Gresit") << "\n";
+        }
+    }
 
     friend std::ostream& operator<<(std::ostream& out, const Utilizator& u) {
         out << "Utilizator: " << u.nume << " | Scor: " << u.scor;
@@ -137,7 +136,13 @@ public:
         : text(text), variante(variante), tip(TipIntrebare::Multipla), raspunsuriCorecte(raspunsuriCorecte) {}
 
     TipIntrebare getTip() const { return tip; }
+    const std::string& getText() const { return text; }
+    const std::vector<std::string>& getVariante() const { return variante; }
     size_t getNrVariante() const { return variante.size(); }
+    std::vector<int> getRaspunsuriCorecte() const {
+        if (tip == TipIntrebare::Simpla || tip == TipIntrebare::AdevaratFals) return { raspunsCorect };
+        return raspunsuriCorecte;
+    }
 
     bool verificaRaspuns(const std::vector<int>& r) const {
         if (tip == TipIntrebare::Simpla || tip == TipIntrebare::AdevaratFals) {
@@ -210,175 +215,37 @@ public:
 
 class Timer {
     int durata;
-    static void updateTimerLine(const std::string& text) {
-        std::lock_guard<std::mutex> lock(consoleMutex());
-        if (!supportsAnsiCursorControl()) {
-            if (text.find_first_not_of(' ') == std::string::npos) return;
-            std::cout << "\n" << text << std::flush;
-            return;
-        }
-        std::cout << "\033[s";               // save cursor position
-        std::cout << "\033[1A";              // move to timer line
-        std::cout << "\r" << text;           // overwrite timer line
-        std::cout << "\033[K";               // clear to end of line
-        std::cout << "\033[u" << std::flush; // restore cursor
-    }
-
-    static std::string formatCountdown(int seconds) {
-        std::ostringstream oss;
-        oss << "Timp ramas: " << std::setw(2) << seconds << "s";
-        return oss.str();
-    }
 
 public:
     Timer(int secunde = 10) : durata(secunde) {}
 
-    std::thread startCountdown(std::atomic<bool>& stopRequested, std::atomic<bool>& timeExpired) const {
-        using namespace std::chrono_literals;
-        return std::thread([this, &stopRequested, &timeExpired]() {
-            for (int elapsed = 1; elapsed <= durata; ++elapsed) {
-                std::this_thread::sleep_for(1s);
-                if (stopRequested.load()) {
-                    updateTimerLine(std::string(30, ' '));
-                    return;
-                }
-
-                int remaining = durata - elapsed;
-                if (remaining >= 0) {
-                    updateTimerLine(formatCountdown(remaining));
-                }
-            }
-
-            timeExpired.store(true);
-            updateTimerLine("Timpul a expirat!");
-        });
+    void start() const {
+        std::cout << "[Cronometru dezactivat temporar pentru a nu bloca introducerea raspunsurilor]\n";
     }
+
+    bool TimpExpirat(const std::chrono::steady_clock::time_point&) const { return false; }
 
     int getDurata() const { return durata; }
 
 };
 
-namespace {
+void afiseazaHint(const Intrebare& intrebare, std::mt19937& rng) {
+    const auto& variante = intrebare.getVariante();
+    const auto corecte = intrebare.getRaspunsuriCorecte();
 
-struct CapturedAnswer {
-    bool endOfInput = false;
-    bool timedOut = false;
-    std::optional<std::string> raw;
-};
-
-#if HAS_POSIX_TERMINAL
-std::optional<std::string> readFromTerminal(std::atomic<bool>& stopTimer,
-                                            std::atomic<bool>& timeExpired,
-                                            bool& inputEnded) {
-    TerminalModeGuard guard;
-    if (!guard.isActive()) {
-        std::string fallback;
-        if (std::getline(std::cin, fallback)) {
-            if (!fallback.empty() && fallback.back() == '\r') fallback.pop_back();
-            stopTimer.store(true);
-            return fallback;
-        }
-        inputEnded = true;
-        return std::nullopt;
+    if (intrebare.getTip() == TipIntrebare::Multipla) {
+        std::cout << "Sugestie: Exista " << corecte.size()
+                  << " raspunsuri corecte pentru aceasta intrebare.\n";
+        return;
     }
 
-    std::string buffer;
-    using namespace std::chrono_literals;
-
-    while (!timeExpired.load()) {
-        char ch = 0;
-        ssize_t readBytes = ::read(STDIN_FILENO, &ch, 1);
-        if (readBytes == 1) {
-            if (ch == '\n' || ch == '\r') {
-                {
-                    std::lock_guard<std::mutex> lock(consoleMutex());
-                    std::cout << "\n" << std::flush;
-                }
-                stopTimer.store(true);
-                return buffer;
-            }
-            if (ch == 4) { // Ctrl + D
-                inputEnded = true;
-                return std::nullopt;
-            }
-            if (ch == 3) { // Ctrl + C
-                inputEnded = true;
-                return std::nullopt;
-            }
-            if (ch == 127 || ch == 8) {
-                if (!buffer.empty()) {
-                    buffer.pop_back();
-                    std::lock_guard<std::mutex> lock(consoleMutex());
-                    std::cout << "\b \b" << std::flush;
-                }
-                continue;
-            }
-            if (std::isprint(static_cast<unsigned char>(ch))) {
-                buffer.push_back(ch);
-                std::lock_guard<std::mutex> lock(consoleMutex());
-                std::cout << ch << std::flush;
-            }
-        }
-        else if (readBytes == -1) {
-            if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                std::this_thread::sleep_for(10ms);
-                continue;
-            }
-            if (errno == EINTR) continue;
-            break;
-        }
-        else {
-            std::this_thread::sleep_for(10ms);
-        }
+    std::uniform_int_distribution<size_t> dist(0, corecte.size() - 1);
+    const auto indexSelectat = corecte[dist(rng)];
+    if (indexSelectat < variante.size()) {
+        std::cout << "Sugestie: Gandeste-te la varianta \"" << variante[indexSelectat] << "\".\n";
+    } else {
+        std::cout << "Sugestie: Raspunsul corect se afla printre optiunile numerotate mici.\n";
     }
-
-    if (guard.isActive()) {
-        tcflush(STDIN_FILENO, TCIFLUSH);
-    }
-    return std::nullopt;
-}
-#endif
-
-CapturedAnswer captureAnswer(std::istream& in,
-                             const Timer& t) {
-    CapturedAnswer result;
-    std::atomic<bool> stopTimer(false);
-    std::atomic<bool> timeExpired(false);
-    auto timerThread = t.startCountdown(stopTimer, timeExpired);
-
-#if HAS_POSIX_TERMINAL
-    const bool interactiveTerminal = (&in == &std::cin) && ::isatty(STDIN_FILENO);
-#else
-    const bool interactiveTerminal = false;
-#endif
-
-    if (interactiveTerminal) {
-#if HAS_POSIX_TERMINAL
-        result.raw = readFromTerminal(stopTimer, timeExpired, result.endOfInput);
-#endif
-    }
-    else {
-        std::string line;
-        if (std::getline(in, line)) {
-            if (!line.empty() && line.back() == '\r') line.pop_back();
-            result.raw = std::move(line);
-            stopTimer.store(true);
-        }
-        else {
-            result.endOfInput = true;
-        }
-    }
-
-    stopTimer.store(true);
-    if (timerThread.joinable()) timerThread.join();
-
-    if (!result.raw.has_value() && timeExpired.load()) {
-        result.timedOut = true;
-    }
-
-    return result;
-}
-
 }
 
 class JocKahoot{
@@ -394,79 +261,119 @@ public:
     //fcț membru pentru desfășurarea jocului
     void startJoc(std::istream& in = std::cin) {
         std::cout << "--- Joc Kahoot ---\n";
+        std::random_device rd;
+        std::mt19937 rng(rd());
+
+        bool fluxTerminat = false;
+        bool jocOprit = false;
+
         for (auto& user : utilizatori) {
             std::cout << "\n>> Jucator: " << user.getNume() << "\n";
             for (const auto& intrebare : chestionar.getIntrebari()) {
                 std::cout << intrebare << "\n";
-                Timer t(10);
+                std::cout << "[H - ajutor | SKIP - sari intrebarea | STOP - opreste jocul]\n";
 
-                if (intrebare.getTip() == TipIntrebare::Multipla) {
-                    std::cout << "Introdu toate variantele corecte separate prin spatiu.\n";
-                }
-                else {
-                    std::cout << "Introdu o singura varianta (1-" << intrebare.getNrVariante() << ").\n";
-                }
+                RezultatIntrebare rezultat;
+                rezultat.intrebare = intrebare.getText();
 
-                {
-                    std::lock_guard<std::mutex> lock(consoleMutex());
-                    std::cout << "Timp ramas: " << std::setw(2) << t.getDurata() << "s" << std::endl;
+                std::vector<int> raspunsEvaluat;
+                bool finalizat = false;
+                while (!finalizat) {
                     std::cout << "> " << std::flush;
+                    std::string linie;
+                    if (!std::getline(in, linie)) {
+                        fluxTerminat = true;
+                        break;
+                    }
+                    if (!linie.empty() && linie.back() == '\r') linie.pop_back();
+                    linie = trim(linie);
+                    if (linie.empty()) {
+                        std::cout << "Introdu un raspuns sau o comanda valida.\n";
+                        continue;
+                    }
+
+                    const auto comanda = toUpper(linie);
+                    if (comanda == "STOP") {
+                        jocOprit = true;
+                        finalizat = true;
+                        break;
+                    }
+
+                    if (comanda == "H") {
+                        if (user.poateFolosiAjutor()) {
+                            afiseazaHint(intrebare, rng);
+                            user.consumaAjutor();
+                        }
+                        else {
+                            std::cout << "Ai folosit deja ajutorul unic disponibil pentru aceasta sesiune.\n";
+                        }
+                        continue;
+                    }
+
+                    if (comanda == "SKIP") {
+                        rezultat.sarita = true;
+                        finalizat = true;
+                        break;
+                    }
+
+                    auto raspunsuri = parseAnswerIndices(linie, intrebare.getNrVariante());
+                    if (!raspunsuri) {
+                        std::cout << "Raspuns invalid. Foloseste numere separate prin spatiu.\n";
+                        continue;
+                    }
+
+                    if ((intrebare.getTip() == TipIntrebare::Simpla || intrebare.getTip() == TipIntrebare::AdevaratFals) && raspunsuri->size() != 1) {
+                        std::cout << "Pentru acest tip de intrebare trebuie sa alegi o singura varianta.\n";
+                        continue;
+                    }
+
+                    raspunsEvaluat = *raspunsuri;
+                    rezultat.raspunsuriAlese = raspunsEvaluat;
+                    finalizat = true;
                 }
 
-                auto raspunsCapturat = captureAnswer(in, t);
+                if (fluxTerminat || jocOprit) break;
 
-                if (raspunsCapturat.endOfInput) {
-                    std::cout << "\nNu mai exista raspunsuri de citit. Jocul se incheie.\n";
-                    return;
-                }
-
-                if (raspunsCapturat.timedOut) {
-                    std::cout << "\nTimpul a expirat! Se trece la urmatoarea intrebare.\n";
+                if (rezultat.sarita) {
+                    std::cout << "Intrebarea a fost sarita.\n";
+                    user.adaugaRezultat(rezultat);
                     continue;
                 }
 
-                if (!raspunsCapturat.raw || raspunsCapturat.raw->empty()) {
-                    std::cout << "Nu s-a introdus niciun raspuns valid.\n";
-                    continue;
-                }
+                const bool corect = !raspunsEvaluat.empty() && intrebare.verificaRaspuns(raspunsEvaluat);
+                rezultat.corecta = corect;
+                user.adaugaRezultat(rezultat);
 
-                auto raspunsuri = parseAnswerIndices(*raspunsCapturat.raw, intrebare.getNrVariante());
-                if (!raspunsuri) {
-                    std::cout << "Raspuns invalid. Tasteaza doar numere separate prin spatii.\n";
-                    continue;
-                }
-
-                if ((intrebare.getTip() == TipIntrebare::Simpla || intrebare.getTip() == TipIntrebare::AdevaratFals) && raspunsuri->size() != 1) {
-                    std::cout << "Alege o singura varianta pentru acest tip de intrebare.\n";
-                    continue;
-                }
-
-                std::vector<int> raspunsEvaluat = (intrebare.getTip() == TipIntrebare::Multipla)
-                    ? *raspunsuri
-                    : std::vector<int>{raspunsuri->front()};
-
-                std::cout << "Raspunsul ales: ";
-                for (int idx : raspunsEvaluat) {
-                    std::cout << idx + 1 << " ";
-                }
-                std::cout << "-> ";
-
-                if (intrebare.verificaRaspuns(raspunsEvaluat)) {
-                    std::cout << "Corect!\n";
-                    user.adaugaScor(10);
-                } else {
-                    std::cout << "Gresit!\n";
-                }
-
+                std::cout << (corect ? "Corect!\n" : "Gresit!\n");
+                if (corect) user.adaugaScor(10);
             }
+
+            if (fluxTerminat) {
+                std::cout << "\nNu mai exista raspunsuri disponibile. Jocul se incheie.\n";
+                break;
+            }
+
             std::cout << "Scor final: " << user.getScor() << "\n";
+            user.afiseazaIstoric();
+
+            if (jocOprit) {
+                std::cout << "\nJocul a fost oprit la cererea unui jucator.\n";
+                break;
+            }
         }
     }
 
     friend std::ostream& operator<<(std::ostream& out, const JocKahoot& j) {
         out << "\n--- Clasament final ---\n";
-        for (const auto& u : j.utilizatori)
-            out << u << "\n";
+        auto clasament = j.utilizatori;
+        std::sort(clasament.begin(), clasament.end(), [](const Utilizator& lhs, const Utilizator& rhs) {
+            if (lhs.getScor() == rhs.getScor()) return lhs.getNume() < rhs.getNume();
+            return lhs.getScor() > rhs.getScor();
+        });
+
+        for (size_t poz = 0; poz < clasament.size(); ++poz) {
+            out << poz + 1 << ". " << clasament[poz] << "\n";
+        }
         return out;
     }
 };
@@ -501,6 +408,18 @@ int main() {
     std::cout << c << std::endl;
     c.amestecaIntrebari();
 
+    size_t totalDisponibile = c.getIntrebari().size();
+    size_t numarSelectat = selecteazaNumarIntrebari(totalDisponibile);
+    if (numarSelectat == 0) {
+        std::cerr << "Nu exista suficiente intrebari pentru a porni jocul.\n";
+        return 1;
+    }
+
+    auto inceput = c.getIntrebari().begin();
+    auto sfarsit = inceput + static_cast<long>(numarSelectat);
+    std::vector<Intrebare> intrebariSelectate(inceput, sfarsit);
+    Quiz chestionarSelectat(intrebariSelectate);
+
 
     std::ifstream fin("tastatura.txt");
     if (!fin) {
@@ -512,7 +431,7 @@ int main() {
     fin >> nrJucatori;
     fin.ignore();
 
-    JocKahoot joc(c);
+    JocKahoot joc(chestionarSelectat);
 
     for (int i = 0; i < nrJucatori; ++i) {
         std::string nume;
