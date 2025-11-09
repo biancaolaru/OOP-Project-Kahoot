@@ -6,6 +6,7 @@
 #include <random>
 #include <chrono>
 #include <thread>
+#include <atomic>
 #include <iomanip>
 
 class Utilizator{
@@ -125,9 +126,9 @@ public:
     void start() const {
         using namespace std::chrono;
         auto start = steady_clock::now();
-
+        std::cout << "Timp ramas: ";
         for (int t = durata; t > 0; --t) {
-            std::cout << "Timp ramas: " << std::setw(2) << t << " secunde" << std::flush;
+            std::cout << std::setw(2) << t << "s" << std::flush;
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
@@ -162,7 +163,6 @@ public:
             std::cout << "\n>> Jucator: " << user.getNume() << "\n";
             for (const auto& intrebare : chestionar.getIntrebari()) {
                 std::cout << intrebare << "\n";
-
                 Timer t(10);
                 auto startMoment = std::chrono::steady_clock::now();
 
@@ -170,6 +170,7 @@ public:
 
                 if (intrebare.getTip() == TipIntrebare::Simpla || intrebare.getTip() == TipIntrebare::AdevaratFals) {
                     int r;
+
                     std::cout << "Introdu varianta aleasa: ";
                     std::cin >> r;
                     std::cout << "Raspunsul ales: " << r << " -> ";
