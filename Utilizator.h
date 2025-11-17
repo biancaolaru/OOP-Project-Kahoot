@@ -20,11 +20,11 @@ class Utilizator {
     std::vector<RezultatIntrebare> istoric;
 
 public:
-    explicit Utilizator(const std::string& nume = "Anonim", int scor = 0);
+    Utilizator(const std::string& nume = "Anonim", int scor = 0);
 
     void adaugaScor(int puncte);
     int getScor() const;
-    const std::string getNume() const;
+    std::string getNume() const;
 
     bool poateFolosiAjutor() const;
     void consumaAjutor();
