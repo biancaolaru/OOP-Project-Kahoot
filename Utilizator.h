@@ -20,7 +20,7 @@ class Utilizator {
     std::vector<RezultatIntrebare> istoric;
 
 public:
-    Utilizator(const std::string& nume = "Anonim", int scor = 0);
+    explicit Utilizator(const std::string& nume = "Anonim", int scor = 0);
 
     void adaugaScor(int puncte);
     int getScor() const;
