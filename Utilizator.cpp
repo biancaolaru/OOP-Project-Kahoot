@@ -69,3 +69,4 @@ std::ostream& operator<<(std::ostream& out, const Utilizator& u) {
     out << "Utilizator: " << u.nume << " | Scor: " << u.scor;
     return out;
 }
+//
