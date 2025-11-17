@@ -24,7 +24,7 @@ public:
 
     void adaugaScor(int puncte);
     int getScor() const;
-    const std::string getNume() const;
+    const std::string& getNume() const;
 
     bool poateFolosiAjutor() const;
     void consumaAjutor();

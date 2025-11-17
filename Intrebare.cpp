@@ -15,6 +15,7 @@ Intrebare::Intrebare(const std::string& text,
                      const std::vector<std::string>& variante,
                      std::vector<int> raspunsuriCorecte)
     : text(text), variante(variante),
+raspunsCorect(-1),
       raspunsuriCorecte(raspunsuriCorecte),
       tip(TipIntrebare::Multipla) {}
 

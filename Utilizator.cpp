@@ -10,7 +10,7 @@ Utilizator::Utilizator(const std::string& nume, int scor)
 
 void Utilizator::adaugaScor(int puncte) { scor += puncte; }
 int Utilizator::getScor() const { return scor; }
-const std::string Utilizator::getNume() const { return nume; }
+const std::string& Utilizator::getNume() const { return nume; }
 
 bool Utilizator::poateFolosiAjutor() const { return ajutorDisponibil; }
 
