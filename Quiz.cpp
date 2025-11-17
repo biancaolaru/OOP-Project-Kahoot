@@ -9,9 +9,9 @@
 Quiz::Quiz(const std::vector<Intrebare>& intrebari)
     : intrebari(intrebari) {}
 
-Quiz::Quiz(const Quiz& other) {
-    intrebari = other.intrebari;
-}
+Quiz::Quiz(const Quiz& other)
+    : intrebari(other.intrebari)
+{}
 
 Quiz& Quiz::operator=(const Quiz& other) {
     if (this != &other)
