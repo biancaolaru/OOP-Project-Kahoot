@@ -43,18 +43,18 @@ O cerință nu se consideră îndeplinită dacă este realizată doar prin cod g
 - [x] cât mai multe `const` (unde este cazul) și funcții `private`
 - [x] implementarea a minim 3 funcții membru publice pentru funcționalități netriviale specifice temei alese, dintre care cel puțin 1-2 funcții mai complexe
   - nu doar citiri/afișări sau adăugat/șters elemente într-un/dintr-un vector
-- [ ] scenariu de utilizare **cu sens** a claselor definite:
+- [x] scenariu de utilizare **cu sens** a claselor definite:
   - crearea de obiecte și apelarea tuturor funcțiilor membru publice în main
   - vor fi adăugate în fișierul `tastatura.txt` DOAR exemple de date de intrare de la tastatură (dacă există); dacă aveți nevoie de date din fișiere, creați alte fișiere separat
-- [ ] minim 50-55% din codul propriu să fie C++, `.gitattributes` configurat corect
-- [ ] tag de `git`: de exemplu `v0.1`
-- [ ] serviciu de integrare continuă (CI) cu **toate bifele**; exemplu: GitHub Actions
-- [ ] code review #1 2 proiecte
+- [x] minim 50-55% din codul propriu să fie C++, `.gitattributes` configurat corect
+- [x] tag de `git`: de exemplu `v0.1`
+- [x] serviciu de integrare continuă (CI) cu **toate bifele**; exemplu: GitHub Actions
+- [x] code review #1 2 proiecte
 
 ## Tema 2
 
 #### Cerințe
-- [ ] separarea codului din clase în `.h` (sau `.hpp`) și `.cpp`
+- [x] separarea codului din clase în `.h` (sau `.hpp`) și `.cpp`
 - [ ] moșteniri:
   - minim o clasă de bază și **3 clase derivate** din aceeași ierarhie
   - ierarhia trebuie să fie cu bază proprie, nu derivată dintr-o clasă predefinită
