@@ -5,55 +5,65 @@
 #include "Intrebare.h"
 #include <algorithm>
 
-Intrebare::Intrebare(const std::string& text,
-                     const std::vector<std::string>& variante,
-                     int raspunsCorect,
-                     TipIntrebare tip)
-    : text(text), variante(variante), raspunsCorect(raspunsCorect), tip(tip) {}
+Intrebare::Intrebare(const std::string &text, const std::vector<std::string> &variante)
+         : text(text), variante(variante){}
 
-Intrebare::Intrebare(const std::string& text,
-                     const std::vector<std::string>& variante,
-                     std::vector<int> raspunsuriCorecte)
-    : text(text), variante(variante),
-raspunsCorect(-1),
-      raspunsuriCorecte(raspunsuriCorecte),
-      tip(TipIntrebare::Multipla) {}
-
-TipIntrebare Intrebare::getTip() const { return tip; }
-const std::string& Intrebare::getText() const { return text; }
-const std::vector<std::string>& Intrebare::getVariante() const { return variante; }
-size_t Intrebare::getNrVariante() const { return variante.size(); }
-
-std::vector<int> Intrebare::getRaspunsuriCorecte() const {
-    if (tip == TipIntrebare::Multipla) return raspunsuriCorecte;
-    return { raspunsCorect };
+const std::string& Intrebare::getText() const {
+    return text;
 }
 
-bool Intrebare::verificaRaspuns(const std::vector<int>& r) const {
-    if (tip != TipIntrebare::Multipla) {
-        return !r.empty() && r[0] == raspunsCorect;
-    }
+const std::vector<std::string>& Intrebare::getVariante() const {
+    return variante;
+}
 
+size_t Intrebare::getNrVariante() const {
+    return variante.size();
+}
+
+IntrebareSimpla::IntrebareSimpla(const std::string& text, const std::vector<std::string>& variante, int raspunsCorect)
+    : Intrebare(text, variante), raspunsCorect(raspunsCorect) {}
+
+bool IntrebareSimpla::verificaRaspuns(const std::vector<int>& r) const {
+    return r.size() == 1 && r[0] == raspunsCorect;
+}
+
+void IntrebareSimpla::afiseaza() const {
+    std::cout << text << "\n";
+    for (size_t i = 0; i < variante.size(); ++i)
+        std::cout << (i + 1) << ": " << variante[i] << "\n";
+}
+
+IntrebareMultipla::IntrebareMultipla(const std::string& text, const std::vector<std::string>& variante, const std::vector<int>& raspunsuriCorecte)
+    : Intrebare(text, variante), raspunsuriCorecte(raspunsuriCorecte) {}
+
+bool IntrebareMultipla::verificaRaspuns(const std::vector<int>& r) const {
     if (r.size() != raspunsuriCorecte.size()) return false;
-
-    auto a = r;
-    auto b = raspunsuriCorecte;
+    std::vector<int> a = r;
+    std::vector<int> b = raspunsuriCorecte;
     std::sort(a.begin(), a.end());
     std::sort(b.begin(), b.end());
-
     return a == b;
 }
 
-std::ostream& operator<<(std::ostream& out, const Intrebare& i) {
-    out << "Intrebare: " << i.text << "\n";
-    for (size_t j = 0; j < i.variante.size(); ++j)
-        out << "  " << j + 1 << ". " << i.variante[j] << "\n";
+const std::vector<int>& IntrebareMultipla::getRaspunsuriCorecte() const {
+    return raspunsuriCorecte;
+}
 
-    if (i.tip == TipIntrebare::AdevaratFals)
-        out << "Intrebarea este de tip Adevarat/Fals\n";
+void IntrebareMultipla::afiseaza() const {
+    std::cout << text << "\n";
+    for (size_t i = 0; i < variante.size(); ++i)
+        std::cout << (i + 1) << ": " << variante[i] << "\n";
+}
 
-    if (i.tip == TipIntrebare::Multipla)
-        out << "Intrebarea are raspunsuri multiple\n";
+IntrebareAdevaratFals::IntrebareAdevaratFals(const std::string& text, bool raspunsCorect)
+    : Intrebare(text, { "Adevarat", "Fals" }), raspunsCorect(raspunsCorect) {}
 
-    return out;
+bool IntrebareAdevaratFals::verificaRaspuns(const std::vector<int>& r) const {
+    // raspunsurile sunt zero-based (0 = Adevarat, 1 = Fals)
+    return r.size() == 1 && r[0] == (raspunsCorect ? 0 : 1);
+}
+
+void IntrebareAdevaratFals::afiseaza() const {
+    std::cout << text << "\n";
+    std::cout << "1: Adevarat\n2: Fals\n";
 }

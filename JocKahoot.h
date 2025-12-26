@@ -21,7 +21,7 @@ class JocKahoot {
     Quiz chestionar;
 
 public:
-    explicit JocKahoot(const Quiz& c);
+    explicit JocKahoot(Quiz&& c);
 
     void adaugaUtilizator(const Utilizator& u);
     void startJoc(std::istream& in = std::cin);

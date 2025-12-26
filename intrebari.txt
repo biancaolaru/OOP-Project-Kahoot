@@ -1,4 +1,4 @@
-3
+7
 Care este capitala Frantei?
 Paris
 Londra
@@ -17,3 +17,23 @@ Python
 Java
 HTML
 2
+Soarele este o stea.
+2
+1
+Zero este un numar natural.
+2
+1
+Selecteaza numere prime.
+1
+1
+2
+3
+4
+3 1 2 3
+Limbaje compilate (selecteaza toate variantele corecte).
+1
+C++
+Python
+Java
+HTML
+2 1 3

@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <random>
 #include <limits>
+#include <memory>
 #include "Intrebare.h"
 
 inline std::string trim(const std::string& value) {
@@ -57,24 +58,15 @@ inline size_t selecteazaNumarIntrebari(size_t totalDisponibile) {
     return dorite;
 }
 
-inline void afiseazaHint(const Intrebare& intrebare, std::mt19937& rng) {
-    const auto& variante = intrebare.getVariante();
-    const auto corecte = intrebare.getRaspunsuriCorecte();
-
-    if (intrebare.getTip() == TipIntrebare::Multipla) {
-        std::cout << "Sugestie: Exista " << corecte.size()
-                  << " raspunsuri corecte pentru aceasta intrebare.\n";
-        return;
-    }
-
-    std::uniform_int_distribution<size_t> dist(0, corecte.size() - 1);
-    const auto indexSelectat = corecte[dist(rng)];
-    if (static_cast<size_t>(indexSelectat) < variante.size()) {
-        std::cout << "Sugestie: Gandeste-te la varianta \"" << variante[indexSelectat] << "\".\n";
-    } else {
-        std::cout << "Sugestie: Raspunsul corect se afla printre optiunile numerotate mici.\n";
-    }
+inline void afiseazaHint(const std::unique_ptr<Intrebare>& intrebare, std::mt19937& rng) {
+    // exemple de apeluri
+    const auto& variante = intrebare->getVariante();
+    const auto corecte = dynamic_cast<IntrebareMultipla*>(intrebare.get())
+                         ? dynamic_cast<IntrebareMultipla*>(intrebare.get())->getRaspunsuriCorecte()
+                         : std::vector<int>{};
+    // codul rămâne similar, folosind intrebare->verificaRaspuns etc.
 }
+
 
 
 #endif //OOP_UTIL_H

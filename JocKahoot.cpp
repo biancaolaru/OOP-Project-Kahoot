@@ -9,7 +9,7 @@
 #include <limits>
 #include "Util.h"
 
-JocKahoot::JocKahoot(const Quiz& c) : chestionar(c) {}
+JocKahoot::JocKahoot(Quiz&& c) : chestionar(std::move(c)) {}
 
 void JocKahoot::adaugaUtilizator(const Utilizator& u) {
     utilizatori.push_back(u);
@@ -23,24 +23,44 @@ void JocKahoot::startJoc(std::istream& in) {
     bool fluxTerminat = false;
     bool jocOprit = false;
 
+    // Foloseste un flux curent care poate comuta de la fisier la tastatura o singura data
+    std::istream* currentIn = &in;
+    bool aComutatLaTastatura = false;
+    bool aCititDinFisier = false;
+
     for (auto& user : utilizatori) {
         std::cout << "\n>> Jucator: " << user.getNume() << "\n";
         for (const auto& intrebare : chestionar.getIntrebari()) {
-            std::cout << intrebare << "\n";
+            intrebare->afiseaza();
             std::cout << "[H - ajutor | SKIP - sari intrebarea | STOP - opreste jocul]\n";
 
             RezultatIntrebare rezultat;
-            rezultat.intrebare = intrebare.getText();
+            rezultat.intrebare = intrebare->getText();
 
             std::vector<int> raspunsEvaluat;
             bool finalizat = false;
             while (!finalizat) {
                 std::cout << "> " << std::flush;
                 std::string linie;
-                if (!std::getline(in, linie)) {
-                    fluxTerminat = true;
-                    break;
+                bool citeaDinFisier = (currentIn != &std::cin);
+                if (!std::getline(*currentIn, linie)) {
+                    // Daca am epuizat fisierul/scriptul, comuta o singura data la tastatura
+                    if (currentIn != &std::cin) {
+                        if (!aComutatLaTastatura) {
+                            if (aCititDinFisier) {
+                                std::cout << "\n[Intrari epuizate in fisier. Continua de la tastatura...]\n";
+                            }
+                            aComutatLaTastatura = true;
+                        }
+                        currentIn = &std::cin;
+                        // incearca din nou sa citesti de la tastatura in aceeasi iteratie
+                        continue;
+                    } else {
+                        fluxTerminat = true;
+                        break;
+                    }
                 }
+                if (citeaDinFisier) aCititDinFisier = true;
                 if (!linie.empty() && linie.back() == '\r') linie.pop_back();
                 linie = trim(linie);
                 if (linie.empty()) {
@@ -71,13 +91,15 @@ void JocKahoot::startJoc(std::istream& in) {
                     break;
                 }
 
-                auto raspunsuri = parseAnswerIndices(linie, intrebare.getNrVariante());
+                auto raspunsuri = parseAnswerIndices(linie, intrebare->getNrVariante());
                 if (!raspunsuri) {
                     std::cout << "Raspuns invalid. Foloseste numere separate prin spatiu.\n";
                     continue;
                 }
 
-                if ((intrebare.getTip() == TipIntrebare::Simpla || intrebare.getTip() == TipIntrebare::AdevaratFals) && raspunsuri->size() != 1) {
+                // Pentru IntrebareSimpla si AdevaratFals, se accepta un singur raspuns
+                const bool eMultipla = (dynamic_cast<IntrebareMultipla*>(intrebare.get()) != nullptr);
+                if (!eMultipla && raspunsuri->size() != 1) {
                     std::cout << "Pentru acest tip de intrebare trebuie sa alegi o singura varianta.\n";
                     continue;
                 }
@@ -95,7 +117,7 @@ void JocKahoot::startJoc(std::istream& in) {
                 continue;
             }
 
-            const bool corect = !raspunsEvaluat.empty() && intrebare.verificaRaspuns(raspunsEvaluat);
+            const bool corect = !raspunsEvaluat.empty() && intrebare->verificaRaspuns(raspunsEvaluat);
             rezultat.corecta = corect;
             user.adaugaRezultat(rezultat);
 
