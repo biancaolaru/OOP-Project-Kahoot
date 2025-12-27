@@ -59,12 +59,90 @@ inline size_t selecteazaNumarIntrebari(size_t totalDisponibile) {
 }
 
 inline void afiseazaHint(const std::unique_ptr<Intrebare>& intrebare, std::mt19937& rng) {
-    // exemple de apeluri
     const auto& variante = intrebare->getVariante();
-    const auto corecte = dynamic_cast<IntrebareMultipla*>(intrebare.get())
-                         ? dynamic_cast<IntrebareMultipla*>(intrebare.get())->getRaspunsuriCorecte()
-                         : std::vector<int>{};
-    // codul rămâne similar, folosind intrebare->verificaRaspuns etc.
+    const size_t n = variante.size();
+    if (n == 0) {
+        std::cout << "[Hint indisponibil]\n";
+        return;
+    }
+
+    // detecteaza tipul intrebarii
+    if (auto* mult = dynamic_cast<IntrebareMultipla*>(intrebare.get())) {
+        // Multiple choice: arata cate raspunsuri sunt corecte si dezvaluie unul corect aleator
+        const auto& corecte = mult->getRaspunsuriCorecte();
+        if (corecte.empty()) {
+            std::cout << "[Hint] Exista mai multe raspunsuri corecte.\n";
+            return;
+        }
+        std::vector<int> corecteFiltrate;
+        corecteFiltrate.reserve(corecte.size());
+        for (int idx : corecte) {
+            if (idx >= 0 && static_cast<size_t>(idx) < n)
+                corecteFiltrate.push_back(idx);
+        }
+        if (corecteFiltrate.empty()) {
+            std::cout << "[Hint] Exista mai multe raspunsuri corecte.\n";
+            return;
+        }
+        std::uniform_int_distribution<size_t> dist(0, corecteFiltrate.size() - 1);
+        int dezvaluie = corecteFiltrate[dist(rng)];
+        std::cout << "[Hint] Sunt exact " << corecteFiltrate.size() << " variante corecte. Una dintre ele este: "
+                  << (dezvaluie + 1) << ") " << variante[static_cast<size_t>(dezvaluie)] << "\n";
+
+        // optional, elimina si o varianta gresita daca exista
+        std::vector<int> gresite;
+        gresite.reserve(n);
+        {
+            std::vector<bool> eCorecta(n, false);
+            for (int idx : corecteFiltrate) if (idx >= 0 && static_cast<size_t>(idx) < n) eCorecta[static_cast<size_t>(idx)] = true;
+            for (size_t i = 0; i < n; ++i) if (!eCorecta[i]) gresite.push_back(static_cast<int>(i));
+        }
+        if (!gresite.empty()) {
+            std::uniform_int_distribution<size_t> distG(0, gresite.size() - 1);
+            int elimina = gresite[distG(rng)];
+            std::cout << "[Hint] Poti elimina: " << (elimina + 1) << ") " << variante[static_cast<size_t>(elimina)] << "\n";
+        }
+        return;
+    }
+
+    // pt simpla si adevarat/fals: afla indicele corect prin probare cu verificaRaspuns
+    int indiceCorect = -1;
+    for (size_t i = 0; i < n; ++i) {
+        if (intrebare->verificaRaspuns(std::vector<int>{static_cast<int>(i)})) {
+            indiceCorect = static_cast<int>(i);
+            break;
+        }
+    }
+
+    if (n == 2) {
+        // Adevarat/Fals: spune care nu este corect sau care este corect [mai trebuie gandit :) ]
+        if (indiceCorect >= 0) {
+            int gresit = 1 - indiceCorect; // 0 sau 1
+            std::cout << "[Hint] Varianta gresita este: " << (gresit + 1) << ") "
+                      << variante[static_cast<size_t>(gresit)] << "\n";
+        } else {
+            std::cout << "[Hint] Alege intre cele doua optiuni; una singura este corecta.\n";
+        }
+        return;
+    }
+
+    // intrebare simpla (single-choice cu >= 3 variante)
+    // elimina o varianta gresita aleator si optional indica cate raman
+    std::vector<int> gresite;
+    gresite.reserve(n);
+    for (size_t i = 0; i < n; ++i) {
+        if (static_cast<int>(i) != indiceCorect)
+            gresite.push_back(static_cast<int>(i));
+    }
+    if (!gresite.empty()) {
+        std::uniform_int_distribution<size_t> dist(0, gresite.size() - 1);
+        int elimina = gresite[dist(rng)];
+        std::cout << "[Hint] Eliminam o varianta gresita: " << (elimina + 1) << ") "
+                  << variante[static_cast<size_t>(elimina)] << "\n";
+        std::cout << "[Hint] Raspunsul corect se afla printre cele ramase." << "\n";
+    } else {
+        std::cout << "[Hint] Alege o singura varianta." << "\n";
+    }
 }
 
 

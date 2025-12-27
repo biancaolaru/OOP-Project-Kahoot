@@ -23,7 +23,7 @@ void JocKahoot::startJoc(std::istream& in) {
     bool fluxTerminat = false;
     bool jocOprit = false;
 
-    // Foloseste un flux curent care poate comuta de la fisier la tastatura o singura data
+    // poate comuta de la fisier la tastatura o singura data
     std::istream* currentIn = &in;
     bool aComutatLaTastatura = false;
     bool aCititDinFisier = false;
@@ -44,7 +44,7 @@ void JocKahoot::startJoc(std::istream& in) {
                 std::string linie;
                 bool citeaDinFisier = (currentIn != &std::cin);
                 if (!std::getline(*currentIn, linie)) {
-                    // Daca am epuizat fisierul/scriptul, comuta o singura data la tastatura
+                    // daca am epuizat fisierul/scriptul, comuta o singura data la tastatura
                     if (currentIn != &std::cin) {
                         if (!aComutatLaTastatura) {
                             if (aCititDinFisier) {
@@ -97,7 +97,7 @@ void JocKahoot::startJoc(std::istream& in) {
                     continue;
                 }
 
-                // Pentru IntrebareSimpla si AdevaratFals, se accepta un singur raspuns
+                // pt IntrebareSimpla si AdevaratFals, se accepta un singur raspuns
                 const bool eMultipla = (dynamic_cast<IntrebareMultipla*>(intrebare.get()) != nullptr);
                 if (!eMultipla && raspunsuri->size() != 1) {
                     std::cout << "Pentru acest tip de intrebare trebuie sa alegi o singura varianta.\n";

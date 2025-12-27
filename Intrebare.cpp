@@ -20,6 +20,10 @@ size_t Intrebare::getNrVariante() const {
     return variante.size();
 }
 
+void Intrebare::afiseaza() const {
+    afiseazaImpl();
+}
+
 IntrebareSimpla::IntrebareSimpla(const std::string& text, const std::vector<std::string>& variante, int raspunsCorect)
     : Intrebare(text, variante), raspunsCorect(raspunsCorect) {}
 
@@ -27,10 +31,14 @@ bool IntrebareSimpla::verificaRaspuns(const std::vector<int>& r) const {
     return r.size() == 1 && r[0] == raspunsCorect;
 }
 
-void IntrebareSimpla::afiseaza() const {
+void IntrebareSimpla::afiseazaImpl() const {
     std::cout << text << "\n";
     for (size_t i = 0; i < variante.size(); ++i)
         std::cout << (i + 1) << ": " << variante[i] << "\n";
+}
+
+std::unique_ptr<Intrebare> IntrebareSimpla::clone() const {
+    return std::make_unique<IntrebareSimpla>(*this);
 }
 
 IntrebareMultipla::IntrebareMultipla(const std::string& text, const std::vector<std::string>& variante, const std::vector<int>& raspunsuriCorecte)
@@ -49,10 +57,14 @@ const std::vector<int>& IntrebareMultipla::getRaspunsuriCorecte() const {
     return raspunsuriCorecte;
 }
 
-void IntrebareMultipla::afiseaza() const {
+void IntrebareMultipla::afiseazaImpl() const {
     std::cout << text << "\n";
     for (size_t i = 0; i < variante.size(); ++i)
         std::cout << (i + 1) << ": " << variante[i] << "\n";
+}
+
+std::unique_ptr<Intrebare> IntrebareMultipla::clone() const {
+    return std::make_unique<IntrebareMultipla>(*this);
 }
 
 IntrebareAdevaratFals::IntrebareAdevaratFals(const std::string& text, bool raspunsCorect)
@@ -63,7 +75,11 @@ bool IntrebareAdevaratFals::verificaRaspuns(const std::vector<int>& r) const {
     return r.size() == 1 && r[0] == (raspunsCorect ? 0 : 1);
 }
 
-void IntrebareAdevaratFals::afiseaza() const {
+void IntrebareAdevaratFals::afiseazaImpl() const {
     std::cout << text << "\n";
     std::cout << "1: Adevarat\n2: Fals\n";
+}
+
+std::unique_ptr<Intrebare> IntrebareAdevaratFals::clone() const {
+    return std::make_unique<IntrebareAdevaratFals>(*this);
 }

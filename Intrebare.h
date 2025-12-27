@@ -8,11 +8,14 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <memory>
 
 class Intrebare {
 protected:
     std::string text;
     std::vector<std::string> variante;
+
+    virtual void afiseazaImpl() const = 0;
 
 public:
     Intrebare(const std::string& text, const std::vector<std::string>& variante);
@@ -23,9 +26,13 @@ public:
     const std::vector<std::string>& getVariante() const;
     size_t getNrVariante() const;
 
-    //fct virtuala
+    // fct virtuala specifica temei
     virtual bool verificaRaspuns(const std::vector<int>& r) const = 0;
-    virtual void afiseaza() const = 0;
+
+    void afiseaza() const;
+
+    // constructor virtual
+    virtual std::unique_ptr<Intrebare> clone() const = 0;
 };
 
 //derivate
@@ -35,7 +42,10 @@ class IntrebareSimpla : public Intrebare {
 public:
     IntrebareSimpla(const std::string& text, const std::vector<std::string>& variante, int raspunsCorect);
     bool verificaRaspuns(const std::vector<int>& r) const override;
-    void afiseaza() const override;
+    std::unique_ptr<Intrebare> clone() const override;
+
+protected:
+    void afiseazaImpl() const override;
 };
 
 class IntrebareMultipla : public Intrebare {
@@ -44,10 +54,12 @@ class IntrebareMultipla : public Intrebare {
 public:
     IntrebareMultipla(const std::string& text, const std::vector<std::string>& variante, const std::vector<int>& raspunsuriCorecte);
     bool verificaRaspuns(const std::vector<int>& r) const override;
-    void afiseaza() const override;
+    std::unique_ptr<Intrebare> clone() const override;
 
-    // accesor pentru Util/hints etc.
     const std::vector<int>& getRaspunsuriCorecte() const;
+
+protected:
+    void afiseazaImpl() const override;
 };
 
 class IntrebareAdevaratFals : public Intrebare {
@@ -56,7 +68,16 @@ class IntrebareAdevaratFals : public Intrebare {
 public:
     IntrebareAdevaratFals(const std::string& text, bool raspunsCorect);
     bool verificaRaspuns(const std::vector<int>& r) const override;
-    void afiseaza() const override;
+    std::unique_ptr<Intrebare> clone() const override;
+
+protected:
+    void afiseazaImpl() const override;
 };
+
+// operator<<
+inline std::ostream& operator<<(std::ostream& out, const Intrebare& q) {
+    q.afiseaza();
+    return out;
+}
 
 #endif //OOP_INTREBARE_H

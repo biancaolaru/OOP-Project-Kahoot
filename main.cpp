@@ -12,30 +12,12 @@
 #include "Util.h"
 
 int main() {
-    // Alege automat fisierul cu mai multe intrebari dintre ./intrebari.txt si ../intrebari.txt
-    auto alegeFisierIntrebari = []() -> std::string {
-        auto citesteCount = [](const std::string& p) -> int {
-            std::ifstream in(p);
-            if (!in) return -1;
-            int n = -1;
-            in >> n;
-            return in ? n : -1;
-        };
-        const std::string p1 = "intrebari.txt";
-        const std::string p2 = "../intrebari.txt";
-        int n1 = citesteCount(p1);
-        int n2 = citesteCount(p2);
-        if (n1 <= 0 && n2 <= 0) return "";
-        if (n1 > n2) return p1; // prefera fisierul din directorul curent doar daca are mai multe intrebari
-        return p2; // altfel prefera fisierul parinte (proiect)
-    };
-
-    std::string caleIntrebari = alegeFisierIntrebari();
-    if (caleIntrebari.empty()) {
-        std::cerr << "Eroare: nu s-a putut deschide niciun intrebari.txt valid (./ sau ../)\n";
+    const std::string caleIntrebari = "intrebari.txt";
+    std::ifstream f(caleIntrebari);
+    if (!f) {
+        std::cerr << "Eroare: nu s-a putut deschide intrebari.txt (asigura-te ca exista langa executabil)\n";
         return 1;
     }
-    std::ifstream f(caleIntrebari);
 
     int nrIntrebari;
     f >> nrIntrebari;
@@ -100,7 +82,7 @@ int main() {
                 intrebari.push_back(std::make_unique<IntrebareAdevaratFals>(text, raspCorect));
             }
         } else {
-            // Formatul existent in intrebari.txt: 4 variante urmate de indexul corect (1-based)
+            // Formatul existent in intrebari.txt: 4 variante urmate de indexul corect
             std::string v1 = linie;
             std::string v2, v3, v4, corectStr;
             if (!std::getline(f, v2)) break;
@@ -123,7 +105,7 @@ int main() {
         }
     }
 
-    // Folosim move, deoarece unique_ptr nu poate fi copiat
+    // am pus move, fiindca unique_ptr nu poate fi copiat
     Quiz c(std::move(intrebari));
     c.amestecaIntrebari();
 
@@ -137,8 +119,10 @@ int main() {
     auto inceput = c.getIntrebari().begin();
     auto sfarsit = inceput + static_cast<long>(numarSelectat);
     std::vector<std::unique_ptr<Intrebare>> intrebariSelectate;
-    for (auto it = inceput; it != sfarsit; ++it)
-        intrebariSelectate.push_back(std::move(*it));
+    intrebariSelectate.reserve(numarSelectat);
+    for (auto it = inceput; it != sfarsit; ++it) {
+        if (it->get()) intrebariSelectate.push_back((*it)->clone());
+    }
 
     Quiz chestionarSelectat(std::move(intrebariSelectate));
 
