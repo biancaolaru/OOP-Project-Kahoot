@@ -14,6 +14,8 @@ Interfața este intuitivă, asigurând o experiență ușor de utilizat atât pe
 Pentru fiecare ai opțiunea de a cere ajutor (Help), de a sări peste întrebare (Skip) sau de a opri jocul (Stop).
 În final, vei putea vedea raportul global al Quiz-ului: acuratețe, răspunsuri corecte / greșite, cele mai dificile întrebări și altele.
 
+## Aspecte referitoare la teme
+
 ### Important!
 
 Aveți voie cu cod generat de modele de limbaj la care nu ați contribuit semnificativ doar dacă documentați riguros acest proces.
