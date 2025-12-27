@@ -83,3 +83,20 @@ void IntrebareAdevaratFals::afiseazaImpl() const {
 std::unique_ptr<Intrebare> IntrebareAdevaratFals::clone() const {
     return std::make_unique<IntrebareAdevaratFals>(*this);
 }
+
+// ===== IntrebareOrdine =====
+bool IntrebareOrdine::verificaRaspuns(const std::vector<int>& r) const {
+    // Pentru acest tip, ordinea trebuie sa fie exact cea definita
+    return r == getRaspunsuriCorecte();
+}
+
+void IntrebareOrdine::afiseazaImpl() const {
+    std::cout << text << "\n";
+    for (size_t i = 0; i < variante.size(); ++i)
+        std::cout << (i + 1) << ": " << variante[i] << "\n";
+    std::cout << "(Introdu ordinea corecta a variantelor, de ex: \"2 4 1\")\n";
+}
+
+std::unique_ptr<Intrebare> IntrebareOrdine::clone() const {
+    return std::make_unique<IntrebareOrdine>(*this);
+}

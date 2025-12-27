@@ -74,6 +74,19 @@ protected:
     void afiseazaImpl() const override;
 };
 
+// noua derivata: ordinea raspunsurilor conteaza (mosteneste din IntrebareMultipla)
+class IntrebareOrdine : public IntrebareMultipla {
+public:
+    IntrebareOrdine(const std::string& text, const std::vector<std::string>& variante, const std::vector<int>& ordineCorecta)
+        : IntrebareMultipla(text, variante, ordineCorecta) {}
+
+    bool verificaRaspuns(const std::vector<int>& r) const override;
+    std::unique_ptr<Intrebare> clone() const override;
+
+protected:
+    void afiseazaImpl() const override;
+};
+
 // operator<<
 inline std::ostream& operator<<(std::ostream& out, const Intrebare& q) {
     q.afiseaza();

@@ -5,6 +5,8 @@
 #include <memory>
 #include <sstream>
 #include <limits>
+#include <algorithm>
+#include <cctype>
 #include "Intrebare.h"
 #include "Quiz.h"
 #include "Utilizator.h"
@@ -47,7 +49,7 @@ int main() {
         int tipInt = -1;
         if (!linieTrim.empty()) {
             std::istringstream iss(linieTrim);
-            if ((iss >> tipInt) && iss.eof() && (tipInt == 0 || tipInt == 1 || tipInt == 2)) {
+            if ((iss >> tipInt) && iss.eof() && (tipInt == 0 || tipInt == 1 || tipInt == 2 || tipInt == 3)) {
                 aFostTipInt = true;
             }
         }
@@ -89,6 +91,25 @@ int main() {
                 f.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                 bool raspCorect = (boolAsInt != 0);
                 intrebari.push_back(std::make_unique<IntrebareAdevaratFals>(text, raspCorect));
+            } else if (tipInt == 3) {
+                // Intrebare cu ordinea raspunsurilor (derivata noua)
+                std::vector<std::string> variante(4);
+                for (int j = 0; j < 4; ++j) {
+                    if (!std::getline(f, variante[j])) throw EroareFormat("intrebari.txt: intrebare " + std::to_string(i + 1) + ": varianta lipsa");
+                    if (!variante[j].empty() && variante[j].back() == '\r') variante[j].pop_back();
+                }
+                int nrCorecte = 0;
+                f >> nrCorecte;
+                if (!f || nrCorecte <= 0 || nrCorecte > 4) throw EroareFormat("intrebari.txt: intrebare " + std::to_string(i + 1) + ": numar raspunsuri corecte invalid");
+                std::vector<int> ordineCorecta;
+                ordineCorecta.reserve(static_cast<size_t>(nrCorecte));
+                for (int k = 0; k < nrCorecte; ++k) {
+                    int idx; f >> idx;
+                    if (!f || idx < 1 || idx > 4) throw EroareFormat("intrebari.txt: intrebare " + std::to_string(i + 1) + ": index corect invalid (1..4)");
+                    ordineCorecta.push_back(idx - 1); // pastreaza ordinea exact cum e data
+                }
+                f.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                intrebari.push_back(std::make_unique<IntrebareOrdine>(text, variante, ordineCorecta));
             }
         } else {
             // formatul existent in intrebari.txt: 4 variante urmate de indexul corect
