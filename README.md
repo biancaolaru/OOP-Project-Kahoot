@@ -8,6 +8,12 @@ Aplicația permite crearea, administrarea și participarea la sesiuni de întreb
 Utilizatorii pot genera seturi de întrebări personalizate, pot gestiona participanți și pot vizualiza scorurile obținute în urma fiecărei sesiuni.
 Interfața este intuitivă, asigurând o experiență ușor de utilizat atât pentru organizatori, cât și pentru jucători.
 
+## Cum se desfășoară un Quiz?
+
+Îți poți selecta numărul de întrebări pe care îl dorești din cele disponibile. Ulterior, fiecare utilizator înscris răspunde la aceleași întrebări. 
+Pentru fiecare ai opțiunea de a cere ajutor (Help), de a sări peste întrebare (Skip) sau de a opri jocul (Stop).
+În final, vei putea vedea raportul global al Quiz-ului: acuratețe, răspunsuri corecte / greșite, cele mai dificile întrebări și altele.
+
 ### Important!
 
 Aveți voie cu cod generat de modele de limbaj la care nu ați contribuit semnificativ doar dacă documentați riguros acest proces.
