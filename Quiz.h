@@ -42,10 +42,14 @@ public:
     Quiz(Quiz&&) noexcept = default;
     Quiz& operator=(Quiz&&) noexcept = default;
 
+    // fct de nivel inalt
+    size_t size() const noexcept;
+    Quiz takeFirstNCloned(size_t n) const;
+
     std::vector<std::unique_ptr<Intrebare>>& getIntrebari() {
         return intrebari;
     }
-    // Versiune const (read-only)
+
     const std::vector<std::unique_ptr<Intrebare>>& getIntrebari() const {
         return intrebari;
     }

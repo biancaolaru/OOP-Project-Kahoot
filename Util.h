@@ -17,6 +17,12 @@
 #include <memory>
 #include "Intrebare.h"
 
+
+inline std::mt19937& globalRng() {
+    static std::mt19937 rng{std::random_device{}()};
+    return rng;
+}
+
 inline std::string trim(const std::string& value) {
     const auto start = value.find_first_not_of(" \t\r\n");
     if (start == std::string::npos) return "";
@@ -29,7 +35,7 @@ inline std::string toUpper(std::string text) {
     return text;
 }
 
-inline std::optional<std::vector<int>> parseAnswerIndices(const std::string& raw, size_t maxOptions) {
+[[nodiscard]] inline std::optional<std::vector<int>> parseAnswerIndices(const std::string& raw, size_t maxOptions) {
     std::istringstream iss(raw);
     std::vector<int> indices;
     int value;
@@ -68,7 +74,7 @@ inline void afiseazaHint(const std::unique_ptr<Intrebare>& intrebare, std::mt199
 
     // detecteaza tipul intrebarii
     if (auto* mult = dynamic_cast<IntrebareMultipla*>(intrebare.get())) {
-        // Multiple choice: arata cate raspunsuri sunt corecte si dezvaluie unul corect aleator
+        // Multiple choice: arata cate raspunsuri sunt corecte si dezvaluie unul corect aleatoriu
         const auto& corecte = mult->getRaspunsuriCorecte();
         if (corecte.empty()) {
             std::cout << "[Hint] Exista mai multe raspunsuri corecte.\n";
@@ -115,7 +121,7 @@ inline void afiseazaHint(const std::unique_ptr<Intrebare>& intrebare, std::mt199
     }
 
     if (n == 2) {
-        // Adevarat/Fals: spune care nu este corect sau care este corect [mai trebuie gandit :) ]
+        // Adevarat/Fals: spune care nu este corect sau care este corect [mai trebuie gandit :)]
         if (indiceCorect >= 0) {
             int gresit = 1 - indiceCorect; // 0 sau 1
             std::cout << "[Hint] Varianta gresita este: " << (gresit + 1) << ") "

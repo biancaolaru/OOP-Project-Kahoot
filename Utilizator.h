@@ -23,16 +23,16 @@ public:
     explicit Utilizator(const std::string& nume = "Anonim", int scor = 0);
 
     void adaugaScor(int puncte);
-    int getScor() const;
-    const std::string& getNume() const;
+    int getScor() const noexcept;
+    const std::string& getNume() const noexcept;
 
-    bool poateFolosiAjutor() const;
+    bool poateFolosiAjutor() const noexcept;
     void consumaAjutor();
 
     void adaugaRezultat(const RezultatIntrebare& rez);
 
-    int getAjutoareFolosite() const;
-    const std::vector<RezultatIntrebare>& getIstoric() const;
+    int getAjutoareFolosite() const noexcept;
+    const std::vector<RezultatIntrebare>& getIstoric() const noexcept;
 
     void afiseazaIstoric() const;
 

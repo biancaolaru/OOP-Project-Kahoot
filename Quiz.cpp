@@ -5,7 +5,22 @@
 #include "Quiz.h"
 #include <algorithm>
 #include <random>
+#include "Util.h"
+
+size_t Quiz::size() const noexcept {
+    return intrebari.size();
+}
+
+Quiz Quiz::takeFirstNCloned(size_t n) const {
+    const size_t m = std::min(n, intrebari.size());
+    std::vector<std::unique_ptr<Intrebare>> vec;
+    vec.reserve(m);
+    for (size_t i = 0; i < m; ++i) {
+        if (intrebari[i]) vec.push_back(intrebari[i]->clone());
+    }
+    return Quiz(std::move(vec));
+}
 
 void Quiz::amestecaIntrebari() {
-    std::shuffle(intrebari.begin(), intrebari.end(), std::mt19937{std::random_device{}()});
+    std::shuffle(intrebari.begin(), intrebari.end(), globalRng());
 }

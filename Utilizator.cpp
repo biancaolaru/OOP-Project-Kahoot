@@ -9,10 +9,10 @@ Utilizator::Utilizator(const std::string& nume, int scor)
     : nume(nume), scor(scor) {}
 
 void Utilizator::adaugaScor(int puncte) { scor += puncte; }
-int Utilizator::getScor() const { return scor; }
-const std::string& Utilizator::getNume() const { return nume; }
+int Utilizator::getScor() const noexcept { return scor; }
+const std::string& Utilizator::getNume() const noexcept { return nume; }
 
-bool Utilizator::poateFolosiAjutor() const { return ajutorDisponibil; }
+bool Utilizator::poateFolosiAjutor() const noexcept { return ajutorDisponibil; }
 
 void Utilizator::consumaAjutor() {
     if (ajutorDisponibil) {
@@ -25,9 +25,9 @@ void Utilizator::adaugaRezultat(const RezultatIntrebare& rez) {
     istoric.push_back(rez);
 }
 
-int Utilizator::getAjutoareFolosite() const { return ajutoareFolosite; }
+int Utilizator::getAjutoareFolosite() const noexcept { return ajutoareFolosite; }
 
-const std::vector<RezultatIntrebare>& Utilizator::getIstoric() const {
+const std::vector<RezultatIntrebare>& Utilizator::getIstoric() const noexcept {
     return istoric;
 }
 
