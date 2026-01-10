@@ -5,9 +5,9 @@
 #include "JocKahoot.h"
 #include <random>
 #include <iomanip>
-#include <chrono>
 #include <limits>
 #include "Util.h"
+
 
 JocKahoot::JocKahoot(Quiz&& c) : chestionar(std::move(c)) {}
 
@@ -121,8 +121,17 @@ void JocKahoot::startJoc(std::istream& in) {
             rezultat.corecta = corect;
             user.adaugaRezultat(rezultat);
 
-            std::cout << (corect ? "Corect!\n" : "Gresit!\n");
-            if (corect) user.adaugaScor(10);
+            // Scorare: 100p baza; intrebari multiple si de ordine au punctaj dublu (200p)
+            int puncte = 0;
+            if (corect) {
+                const bool esteMultiplaSauOrdine = (dynamic_cast<IntrebareMultipla*>(intrebare.get()) != nullptr);
+                const int baza = 100;
+                const int multiplicator = esteMultiplaSauOrdine ? 2 : 1;
+                puncte = baza * multiplicator;
+                user.adaugaScor(puncte);
+            }
+            std::cout << (corect ? (std::string("Corect! +") + std::to_string(puncte) + "p") : "Gresit! +0p")
+                      << " | Scor curent: " << user.getScor() << "\n";
         }
 
         if (fluxTerminat) {
@@ -200,6 +209,19 @@ void JocKahoot::afiseazaRaportGlobal() const {
     } else {
         std::cout << "Nicio intrebare nu a fost identificata ca dificila in aceasta sesiune.\n";
     }
+
+    // Afiseaza leaderboard-ul sesiunii (redenumit simplu "Leaderboard")
+    std::cout << "\n--- Leaderboard ---\n";
+    auto clasament = utilizatori;
+    std::sort(clasament.begin(), clasament.end(), [](const Utilizator& lhs, const Utilizator& rhs) {
+        if (lhs.getScor() == rhs.getScor()) return lhs.getNume() < rhs.getNume();
+        return lhs.getScor() > rhs.getScor();
+    });
+    for (size_t poz = 0; poz < clasament.size(); ++poz) {
+        std::cout << poz + 1 << ". Utilizator: " << clasament[poz].getNume()
+                  << " | Scor: " << clasament[poz].getScor() << "\n";
+    }
+
 }
 
 std::ostream& operator<<(std::ostream& out, const JocKahoot& j) {
