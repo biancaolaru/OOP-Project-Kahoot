@@ -16,9 +16,6 @@ const std::vector<std::string>& Intrebare::getVariante() const {
     return variante;
 }
 
-size_t Intrebare::getNrVariante() const {
-    return variante.size();
-}
 
 void Intrebare::afiseaza() const {
     afiseazaImpl();

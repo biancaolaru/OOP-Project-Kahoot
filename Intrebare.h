@@ -24,7 +24,6 @@ public:
 
     const std::string& getText() const;
     const std::vector<std::string>& getVariante() const;
-    size_t getNrVariante() const;
 
     // fct virtuala specifica temei
     virtual bool verificaRaspuns(const std::vector<int>& r) const = 0;
