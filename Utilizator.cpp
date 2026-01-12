@@ -31,9 +31,27 @@ const std::vector<RezultatIntrebare>& Utilizator::getIstoric() const noexcept {
     return istoric;
 }
 
+void Utilizator::inregistreazaRaspuns(bool corect, bool sarita) noexcept {
+    // daca raspunsul este corect, crestem streak-ul; altfel il resetam
+    if (corect) {
+        ++streakCurent;
+        if (streakCurent > streakMax) streakMax = streakCurent;
+    } else {
+        streakCurent = 0;
+    }
+}
+
+int Utilizator::calculeazaBonusStreak(int multiplicator) const noexcept {
+    // bonus simplu: incepand cu al doilea raspuns corect consecutiv
+    // bonus = 10 * (streakCurent - 1) * multiplicator
+    if (streakCurent <= 1) return 0;
+    return 10 * (streakCurent - 1) * multiplicator;
+}
+
 void Utilizator::afiseazaIstoric() const {
     std::cout << "\n   >> Raport pentru " << nume << " (" << scor << " puncte"
-        << ", Hint folosit: " << (ajutoareFolosite > 0 ? "DA" : "NU") << ")\n";
+        << ", Hint folosit: " << (ajutoareFolosite > 0 ? "DA" : "NU")
+        << ", Streak maxim: " << streakMax << ")\n";
 
     if (istoric.empty()) {
         std::cout << "      Nu exista intrebari parcurse in aceasta sesiune.\n";

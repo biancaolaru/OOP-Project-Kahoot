@@ -139,6 +139,8 @@ void JocKahoot::startJoc(std::istream& in) {
 
             if (rezultat.sarita) {
                 std::cout << "Intrebarea a fost sarita.\n";
+                // resetam streak-ul la intrebare sarita
+                user.inregistreazaRaspuns(false, true);
                 user.adaugaRezultat(rezultat);
                 continue;
             }
@@ -148,16 +150,30 @@ void JocKahoot::startJoc(std::istream& in) {
             user.adaugaRezultat(rezultat);
 
             // Scorare: 100p baza; intrebari multiple si de ordine au punctaj dublu (200p)
-            int puncte = 0;
+            int puncteBaza = 0;
+            int bonusStreak = 0;
+            const bool esteMultiplaSauOrdine = (dynamic_cast<IntrebareMultipla*>(intrebare.get()) != nullptr);
+            const int baza = 100;
+            const int multiplicator = esteMultiplaSauOrdine ? 2 : 1;
+
+            // actualizam streak-ul in functie de rezultat si calculam bonusul aferent
+            user.inregistreazaRaspuns(corect, false);
             if (corect) {
-                const bool esteMultiplaSauOrdine = (dynamic_cast<IntrebareMultipla*>(intrebare.get()) != nullptr);
-                const int baza = 100;
-                const int multiplicator = esteMultiplaSauOrdine ? 2 : 1;
-                puncte = baza * multiplicator;
-                user.adaugaScor(puncte);
+                puncteBaza = baza * multiplicator;
+                bonusStreak = user.calculeazaBonusStreak(multiplicator);
+                user.adaugaScor(puncteBaza + bonusStreak);
             }
-            std::cout << (corect ? (std::string("Corect! +") + std::to_string(puncte) + "p") : "Gresit! +0p")
-                      << " | Scor curent: " << user.getScor() << "\n";
+
+            if (corect) {
+                if (bonusStreak > 0) {
+                    std::cout << "Corect! +" << puncteBaza << "p (+streak " << bonusStreak << "p)";
+                } else {
+                    std::cout << "Corect! +" << puncteBaza << "p";
+                }
+            } else {
+                std::cout << "Gresit! +0p";
+            }
+            std::cout << " | Scor curent: " << user.getScor() << "\n";
         }
 
         if (fluxTerminat) {

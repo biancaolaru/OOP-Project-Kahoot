@@ -18,6 +18,10 @@ class Utilizator {
     bool ajutorDisponibil = true;
     int ajutoareFolosite = 0;
     std::vector<RezultatIntrebare> istoric;
+    // streak curent de raspunsuri corecte consecutive
+    int streakCurent = 0;
+    // cel mai mare streak atins in aceasta sesiune
+    int streakMax = 0;
 
 public:
     explicit Utilizator(const std::string& nume = "Anonim", int scor = 0);
@@ -33,6 +37,13 @@ public:
 
     int getAjutoareFolosite() const noexcept;
     const std::vector<RezultatIntrebare>& getIstoric() const noexcept;
+
+    // actualizeaza streak-ul in functie de raspuns
+    void inregistreazaRaspuns(bool corect, bool sarita) noexcept;
+    // calculeaza bonusul pentru streak pe raspunsul curent; multiplicatorul tine cont de tipul intrebarii
+    int calculeazaBonusStreak(int multiplicator) const noexcept;
+    int getStreakCurent() const noexcept { return streakCurent; }
+    int getStreakMax() const noexcept { return streakMax; }
 
     void afiseazaIstoric() const;
 
