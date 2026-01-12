@@ -18,6 +18,31 @@
 #include "Intrebare.h"
 
 
+// Dificultate: 1=Usor, 2=Mediu, 3=Greu
+// euristica simpla: Adevarat/Fals = Usor, IntrebareSimpla = Mediu, IntrebareMultipla/IntrebareOrdine = Greu
+inline int calculeazaDificultate(const std::unique_ptr<Intrebare>& intrebare) {
+    if (dynamic_cast<const IntrebareAdevaratFals*>(intrebare.get())) return 1;
+    if (dynamic_cast<const IntrebareSimpla*>(intrebare.get())) return 2;
+    // multiple si ordine (derivata din multipla) => 3
+    if (dynamic_cast<const IntrebareMultipla*>(intrebare.get())) return 3;
+    return 2; // fallback
+}
+
+inline int selecteazaDificultate() {
+    std::cout << "\nAlege dificultatea: 0=Oricare, 1=Usor, 2=Mediu, 3=Greu: ";
+    int d = 0;
+    if (std::cin >> d) {
+        if (d == 0 || d == 1 || d == 2 || d == 3) {
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            return d;
+        }
+    }
+    std::cout << "Valoare invalida. Se vor folosi toate tipurile de intrebari.\n";
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    return 0;
+}
+
 inline std::mt19937& globalRng() {
     static std::mt19937 rng{std::random_device{}()};
     return rng;

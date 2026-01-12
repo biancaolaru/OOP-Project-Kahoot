@@ -46,6 +46,9 @@ public:
     size_t size() const noexcept;
     Quiz takeFirstNCloned(size_t n) const;
 
+    // filtreaza dupa dificultate
+    Quiz filtreazaDupaDificultate(int dificultate) const; // 1=Usor, 2=Mediu, 3=Greu
+
     std::vector<std::unique_ptr<Intrebare>>& getIntrebari() {
         return intrebari;
     }

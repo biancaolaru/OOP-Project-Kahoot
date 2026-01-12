@@ -139,15 +139,24 @@ int main() {
 
     // am pus move, fiindca unique_ptr nu poate fi copiat
     Quiz c(std::move(intrebari));
-    c.amestecaIntrebari();
 
-    size_t totalDisponibile = c.size();
+    // Selectie dificultate (0=Toate, 1=Usor, 2=Mediu, 3=Greu)
+    int dificultate = selecteazaDificultate();
+    Quiz cFiltrat = c.filtreazaDupaDificultate(dificultate);
+
+    if (cFiltrat.size() == 0) {
+        throw EroareStareJoc("Nu exista intrebari pentru dificultatea aleasa");
+    }
+
+    cFiltrat.amestecaIntrebari();
+
+    size_t totalDisponibile = cFiltrat.size();
     size_t numarSelectat = selecteazaNumarIntrebari(totalDisponibile);
     if (numarSelectat == 0) {
         throw EroareStareJoc("Nu exista suficiente intrebari pentru a porni jocul");
     }
 
-    Quiz chestionarSelectat = c.takeFirstNCloned(numarSelectat);
+    Quiz chestionarSelectat = cFiltrat.takeFirstNCloned(numarSelectat);
 
     std::ifstream fin("tastatura.txt");
     if (!fin) {

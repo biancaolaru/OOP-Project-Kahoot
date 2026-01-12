@@ -1,4 +1,4 @@
-9
+20
 Care este capitala Frantei?
 0
 Paris
@@ -55,3 +55,69 @@ Scrie codul
 Ruleaza
 Depaneaza (debug)
 4 2 1 3 4
+
+C++ este un limbaj compilat.
+2
+1
+Pisica este un mamifer.
+2
+1
+Cine a creat limbajul C++?
+0
+Bjarne Stroustrup
+James Gosling
+Guido van Rossum
+Dennis Ritchie
+1
+Extensia frecventa pentru fisiere header C++ este:
+0
+.hpp
+.py
+.java
+.txt
+1
+Selecteaza limbaje interpretate.
+1
+C++
+Python
+JavaScript
+HTML
+2 2 3
+Alege numere Fibonacci.
+1
+0
+2
+3
+4
+3 1 2 3
+Ordinea corecta a operatiilor Git pentru a publica codul local
+3
+Pull din remote
+Adaugă fisiere (add)
+Creeaza commit
+Trimite pe remote (push)
+4 1 2 3 4
+Ordinea pasilor pentru rezolvarea unei probleme de programare
+3
+Intelege problema
+Planifica solutia
+Implementeaza
+Testeaza
+4 1 2 3 4
+Care este rezultatul expresiei 3*4+2?
+0
+14
+20
+12
+10
+1
+HTML este un limbaj de programare.
+2
+0
+Selecteaza structuri de date liniare.
+1
+Lista
+Arbore
+Coada
+Graf
+2 1 3

@@ -21,6 +21,21 @@ Quiz Quiz::takeFirstNCloned(size_t n) const {
     return Quiz(std::move(vec));
 }
 
+Quiz Quiz::filtreazaDupaDificultate(int dificultate) const {
+    if (dificultate == 0) {
+        // toate
+        return Quiz(*this);
+    }
+    std::vector<std::unique_ptr<Intrebare>> vec;
+    vec.reserve(intrebari.size());
+    for (const auto& q : intrebari) {
+        if (!q) continue;
+        int d = calculeazaDificultate(q);
+        if (d == dificultate) vec.push_back(q->clone());
+    }
+    return Quiz(std::move(vec));
+}
+
 void Quiz::amestecaIntrebari() {
     std::shuffle(intrebari.begin(), intrebari.end(), globalRng());
 }
