@@ -21,7 +21,7 @@ public:
     Quiz() = default;
 
     // constructor care primeste vector de unique_ptr
-    Quiz(std::vector<std::unique_ptr<Intrebare>>&& intrebariVec) {
+    explicit Quiz(std::vector<std::unique_ptr<Intrebare>>&& intrebariVec) {
         for (auto& i : intrebariVec)
             intrebari.push_back(std::move(i));
     }

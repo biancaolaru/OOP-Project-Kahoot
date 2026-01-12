@@ -98,7 +98,7 @@ inline void afiseazaHint(const std::unique_ptr<Intrebare>& intrebare, std::mt199
     }
 
     // detecteaza tipul intrebarii
-    if (auto* mult = dynamic_cast<IntrebareMultipla*>(intrebare.get())) {
+    if (const IntrebareMultipla* mult = dynamic_cast<const IntrebareMultipla*>(intrebare.get())) {
         // Multiple choice: arata cate raspunsuri sunt corecte si dezvaluie unul corect aleatoriu
         const auto& corecte = mult->getRaspunsuriCorecte();
         if (corecte.empty()) {
