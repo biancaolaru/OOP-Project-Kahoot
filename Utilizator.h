@@ -39,11 +39,11 @@ public:
     const std::vector<RezultatIntrebare>& getIstoric() const noexcept;
 
     // actualizeaza streak-ul in functie de raspuns
-    void inregistreazaRaspuns(bool corect, bool sarita) noexcept;
+    void inregistreazaRaspuns(bool corect, bool /*sarita*/) noexcept;
     // calculeaza bonusul pentru streak pe raspunsul curent; multiplicatorul tine cont de tipul intrebarii
     int calculeazaBonusStreak(int multiplicator) const noexcept;
-    int getStreakCurent() const noexcept { return streakCurent; }
-    int getStreakMax() const noexcept { return streakMax; }
+    [[maybe_unused]] int getStreakCurent() const noexcept { return streakCurent; }
+    [[maybe_unused]] int getStreakMax() const noexcept { return streakMax; }
 
     void afiseazaIstoric() const;
 

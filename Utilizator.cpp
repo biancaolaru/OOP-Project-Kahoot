@@ -31,7 +31,7 @@ const std::vector<RezultatIntrebare>& Utilizator::getIstoric() const noexcept {
     return istoric;
 }
 
-void Utilizator::inregistreazaRaspuns(bool corect, bool sarita) noexcept {
+void Utilizator::inregistreazaRaspuns(bool corect, bool /*sarita*/) noexcept {
     // daca raspunsul este corect, crestem streak-ul; altfel il resetam
     if (corect) {
         ++streakCurent;

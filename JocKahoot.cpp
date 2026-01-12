@@ -156,15 +156,12 @@ void JocKahoot::startJoc(std::istream& in) {
             const int baza = 100;
             const int multiplicator = esteMultiplaSauOrdine ? 2 : 1;
 
-            // actualizam streak-ul in functie de rezultat si calculam bonusul aferent
+            // actualizam streak-ul si calculam bonusul/scorul doar daca este corect
             user.inregistreazaRaspuns(corect, false);
             if (corect) {
                 puncteBaza = baza * multiplicator;
                 bonusStreak = user.calculeazaBonusStreak(multiplicator);
                 user.adaugaScor(puncteBaza + bonusStreak);
-            }
-
-            if (corect) {
                 if (bonusStreak > 0) {
                     std::cout << "Corect! +" << puncteBaza << "p (+streak " << bonusStreak << "p)";
                 } else {
