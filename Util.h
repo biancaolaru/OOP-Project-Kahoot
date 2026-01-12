@@ -19,7 +19,7 @@
 
 
 // Dificultate: 1=Usor, 2=Mediu, 3=Greu
-// euristica simpla: Adevarat/Fals = Usor, IntrebareSimpla = Mediu, IntrebareMultipla/IntrebareOrdine = Greu
+// Adevarat/Fals = Usor, IntrebareSimpla = Mediu, IntrebareMultipla/IntrebareOrdine = Greu
 inline int calculeazaDificultate(const std::unique_ptr<Intrebare>& intrebare) {
     if (dynamic_cast<const IntrebareAdevaratFals*>(intrebare.get())) return 1;
     if (dynamic_cast<const IntrebareSimpla*>(intrebare.get())) return 2;
@@ -89,7 +89,7 @@ inline size_t selecteazaNumarIntrebari(size_t totalDisponibile) {
     return dorite;
 }
 
-inline void afiseazaHint(const std::unique_ptr<Intrebare>& intrebare, std::mt19937& rng) {
+inline void afiseazaHint(const std::unique_ptr<Intrebare>& intrebare, std::mt19937& rng, const std::vector<int>* perm = nullptr) {
     const auto& variante = intrebare->getVariante();
     const size_t n = variante.size();
     if (n == 0) {
@@ -97,9 +97,21 @@ inline void afiseazaHint(const std::unique_ptr<Intrebare>& intrebare, std::mt199
         return;
     }
 
+    //de revizuit aici
+    // pregateste maparea canonical->display daca avem permutare
+    std::vector<int> invPerm;
+    auto toDisplayIdx = [&](int canonicalIdx) {
+        if (!perm || perm->size() != n) return canonicalIdx; // fallback
+        if (invPerm.empty()) {
+            invPerm.assign(n, 0);
+            for (size_t i = 0; i < n; ++i) invPerm[static_cast<size_t>((*perm)[i])] = static_cast<int>(i);
+        }
+        return invPerm[static_cast<size_t>(canonicalIdx)];
+    };
+
     // detecteaza tipul intrebarii
     if (const IntrebareMultipla* mult = dynamic_cast<const IntrebareMultipla*>(intrebare.get())) {
-        // Multiple choice: arata cate raspunsuri sunt corecte si dezvaluie unul corect aleatoriu
+        // multipla: arata cate raspunsuri sunt corecte si dezvaluie unul corect aleatoriu
         const auto& corecte = mult->getRaspunsuriCorecte();
         if (corecte.empty()) {
             std::cout << "[Hint] Exista mai multe raspunsuri corecte.\n";
@@ -117,8 +129,9 @@ inline void afiseazaHint(const std::unique_ptr<Intrebare>& intrebare, std::mt199
         }
         std::uniform_int_distribution<size_t> dist(0, corecteFiltrate.size() - 1);
         int dezvaluie = corecteFiltrate[dist(rng)];
+        int disp = toDisplayIdx(dezvaluie);
         std::cout << "[Hint] Sunt exact " << corecteFiltrate.size() << " variante corecte. Una dintre ele este: "
-                  << (dezvaluie + 1) << ") " << variante[static_cast<size_t>(dezvaluie)] << "\n";
+                  << (disp + 1) << ") " << variante[static_cast<size_t>(dezvaluie)] << "\n";
 
         // optional, elimina si o varianta gresita daca exista
         std::vector<int> gresite;
@@ -131,7 +144,8 @@ inline void afiseazaHint(const std::unique_ptr<Intrebare>& intrebare, std::mt199
         if (!gresite.empty()) {
             std::uniform_int_distribution<size_t> distG(0, gresite.size() - 1);
             int elimina = gresite[distG(rng)];
-            std::cout << "[Hint] Poti elimina: " << (elimina + 1) << ") " << variante[static_cast<size_t>(elimina)] << "\n";
+            int dispElim = toDisplayIdx(elimina);
+            std::cout << "[Hint] Poti elimina: " << (dispElim + 1) << ") " << variante[static_cast<size_t>(elimina)] << "\n";
         }
         return;
     }
@@ -146,10 +160,11 @@ inline void afiseazaHint(const std::unique_ptr<Intrebare>& intrebare, std::mt199
     }
 
     if (n == 2) {
-        // Adevarat/Fals: spune care nu este corect sau care este corect [mai trebuie gandit :)]
+        // adevarat/fals
         if (indiceCorect >= 0) {
-            int gresit = 1 - indiceCorect; // 0 sau 1
-            std::cout << "[Hint] Varianta gresita este: " << (gresit + 1) << ") "
+            int gresit = 1 - indiceCorect;
+            int dispG = toDisplayIdx(gresit);
+            std::cout << "[Hint] Varianta gresita este: " << (dispG + 1) << ") "
                       << variante[static_cast<size_t>(gresit)] << "\n";
         } else {
             std::cout << "[Hint] Alege intre cele doua optiuni; una singura este corecta.\n";
@@ -157,8 +172,7 @@ inline void afiseazaHint(const std::unique_ptr<Intrebare>& intrebare, std::mt199
         return;
     }
 
-    // intrebare simpla (single-choice cu >= 3 variante)
-    // elimina o varianta gresita aleator si optional indica cate raman
+    // intrebare simpla: elimina o varianta gresita aleator
     std::vector<int> gresite;
     gresite.reserve(n);
     for (size_t i = 0; i < n; ++i) {
@@ -168,7 +182,8 @@ inline void afiseazaHint(const std::unique_ptr<Intrebare>& intrebare, std::mt199
     if (!gresite.empty()) {
         std::uniform_int_distribution<size_t> dist(0, gresite.size() - 1);
         int elimina = gresite[dist(rng)];
-        std::cout << "[Hint] Eliminam o varianta gresita: " << (elimina + 1) << ") "
+        int dispElim = toDisplayIdx(elimina);
+        std::cout << "[Hint] Eliminam o varianta gresita: " << (dispElim + 1) << ") "
                   << variante[static_cast<size_t>(elimina)] << "\n";
         std::cout << "[Hint] Raspunsul corect se afla printre cele ramase." << "\n";
     } else {

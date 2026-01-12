@@ -6,6 +6,7 @@
 #include <random>
 #include <iomanip>
 #include <limits>
+#include <numeric>
 #include "Util.h"
 
 
@@ -28,10 +29,23 @@ void JocKahoot::startJoc(std::istream& in) {
     bool aComutatLaTastatura = false;
     bool aCititDinFisier = false;
 
+    //de revizuit aici si eventual spart in mai multe functii(?)
     for (auto& user : utilizatori) {
         std::cout << "\n>> Jucator: " << user.getNume() << "\n";
         for (const auto& intrebare : chestionar.getIntrebari()) {
-            intrebare->afiseaza();
+            // generam permutarea variantelor pentru acest jucator si aceasta intrebare
+            const auto& variante = intrebare->getVariante();
+            const size_t nOpt = variante.size();
+            std::vector<int> perm(nOpt);
+            std::iota(perm.begin(), perm.end(), 0);
+            if (nOpt >= 2) std::shuffle(perm.begin(), perm.end(), rng);
+
+            // afisam intrebarea si variantele in ordinea permutata
+            std::cout << intrebare->getText() << "\n";
+            for (size_t i = 0; i < nOpt; ++i) {
+                int origIdx = perm[i];
+                std::cout << (i + 1) << ": " << variante[static_cast<size_t>(origIdx)] << "\n";
+            }
             std::cout << "[H - ajutor | SKIP - sari intrebarea | STOP - opreste jocul]\n";
 
             RezultatIntrebare rezultat;
@@ -77,7 +91,7 @@ void JocKahoot::startJoc(std::istream& in) {
 
                 if (comanda == "H") {
                     if (user.poateFolosiAjutor()) {
-                        afiseazaHint(intrebare, rng);
+                        afiseazaHint(intrebare, rng, &perm);
                         user.consumaAjutor();
                     } else {
                         std::cout << "Ai folosit deja ajutorul unic disponibil pentru aceasta sesiune.\n";
@@ -91,20 +105,32 @@ void JocKahoot::startJoc(std::istream& in) {
                     break;
                 }
 
-                auto raspunsuri = parseAnswerIndices(linie, intrebare->getNrVariante());
-                if (!raspunsuri) {
+                auto raspunsuriDisplay = parseAnswerIndices(linie, nOpt);
+                if (!raspunsuriDisplay) {
                     std::cout << "Raspuns invalid. Foloseste numere separate prin spatiu.\n";
                     continue;
                 }
 
                 // pt IntrebareSimpla si AdevaratFals, se accepta un singur raspuns
                 const bool eMultipla = (dynamic_cast<IntrebareMultipla*>(intrebare.get()) != nullptr);
-                if (!eMultipla && raspunsuri->size() != 1) {
+                if (!eMultipla && raspunsuriDisplay->size() != 1) {
                     std::cout << "Pentru acest tip de intrebare trebuie sa alegi o singura varianta.\n";
                     continue;
                 }
 
-                raspunsEvaluat = *raspunsuri;
+                // mapeaza din indicii afisati (display) in indicii canonici
+                raspunsEvaluat.clear();
+                raspunsEvaluat.reserve(raspunsuriDisplay->size());
+                for (int dispIdx0 : *raspunsuriDisplay) {
+                    if (dispIdx0 < 0 || static_cast<size_t>(dispIdx0) >= nOpt) { raspunsEvaluat.clear(); break; }
+                    int origIdx = perm[static_cast<size_t>(dispIdx0)];
+                    raspunsEvaluat.push_back(origIdx);
+                }
+                if (raspunsEvaluat.empty() && !raspunsuriDisplay->empty()) {
+                    std::cout << "Raspuns invalid. Indici in afara intervalului.\n";
+                    continue;
+                }
+
                 rezultat.raspunsuriAlese = raspunsEvaluat;
                 finalizat = true;
             }
