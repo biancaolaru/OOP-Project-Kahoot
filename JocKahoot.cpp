@@ -150,8 +150,6 @@ void JocKahoot::startJoc(std::istream& in) {
             user.adaugaRezultat(rezultat);
 
             // Scorare: 100p baza; intrebari multiple si de ordine au punctaj dublu (200p)
-            int puncteBaza = 0;
-            int bonusStreak = 0;
             const bool esteMultiplaSauOrdine = (dynamic_cast<IntrebareMultipla*>(intrebare.get()) != nullptr);
             const int baza = 100;
             const int multiplicator = esteMultiplaSauOrdine ? 2 : 1;
@@ -159,8 +157,8 @@ void JocKahoot::startJoc(std::istream& in) {
             // actualizam streak-ul si calculam bonusul/scorul doar daca este corect
             user.inregistreazaRaspuns(corect, false);
             if (corect) {
-                puncteBaza = baza * multiplicator;
-                bonusStreak = user.calculeazaBonusStreak(multiplicator);
+                const int puncteBaza = baza * multiplicator;
+                const int bonusStreak = user.calculeazaBonusStreak(multiplicator);
                 user.adaugaScor(puncteBaza + bonusStreak);
                 if (bonusStreak > 0) {
                     std::cout << "Corect! +" << puncteBaza << "p (+streak " << bonusStreak << "p)";
