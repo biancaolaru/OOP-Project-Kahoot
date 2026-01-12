@@ -170,6 +170,8 @@ int main() {
     fin.ignore();
 
     JocKahoot joc(std::move(chestionarSelectat));
+    // transmitem meta-datele sesiunii pentru scrierea in leaderboard
+    joc.setMetaJoc(dificultate, numarSelectat);
     for (int i = 0; i < nrJucatori; ++i) {
         std::string nume;
         std::getline(fin, nume);

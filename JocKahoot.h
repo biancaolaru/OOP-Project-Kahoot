@@ -19,9 +19,15 @@ class JocKahoot {
 
     std::vector<Utilizator> utilizatori;
     Quiz chestionar;
+    // meta-date ale sesiunii
+    int dificultateSelectata = 0;
+    size_t numarIntrebariSelectate = 0;
 
 public:
     explicit JocKahoot(Quiz&& c);
+
+    // seteaza meta-datele sesiunii (dificultate si numarul de intrebari selectate)
+    void setMetaJoc(int dificultate, size_t numarIntrebari) noexcept;
 
     void adaugaUtilizator(const Utilizator& u);
     void startJoc(std::istream& in = std::cin);

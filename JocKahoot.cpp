@@ -7,10 +7,19 @@
 #include <iomanip>
 #include <limits>
 #include <numeric>
+#include <fstream>
+#include <chrono>
+#include <ctime>
+#include <sstream>
 #include "Util.h"
 
 
 JocKahoot::JocKahoot(Quiz&& c) : chestionar(std::move(c)) {}
+
+void JocKahoot::setMetaJoc(int dificultate, size_t numarIntrebari) noexcept {
+    dificultateSelectata = dificultate;
+    numarIntrebariSelectate = numarIntrebari;
+}
 
 void JocKahoot::adaugaUtilizator(const Utilizator& u) {
     utilizatori.push_back(u);
@@ -257,6 +266,51 @@ void JocKahoot::afiseazaRaportGlobal() const {
     for (size_t poz = 0; poz < clasament.size(); ++poz) {
         std::cout << poz + 1 << ". Utilizator: " << clasament[poz].getNume()
                   << " | Scor: " << clasament[poz].getScor() << "\n";
+    }
+
+    // Scriere in leaderboard.txt (append) cate o inregistrare per utilizator
+    // Format: data_ora, nume, jucate, dificultate_text, hinturi_folosite, scor_final
+    try {
+        std::ofstream fout("leaderboard.txt", std::ios::app);
+        if (!fout) {
+            std::cout << "[Avertisment] Nu s-a putut deschide leaderboard.txt pentru scriere.\n";
+        } else {
+            // data/ora curenta in format YYYY-MM-DD HH:MM
+            auto now = std::chrono::system_clock::now();
+            std::time_t t = std::chrono::system_clock::to_time_t(now);
+            std::tm tm{};
+            #if defined(_WIN32)
+                localtime_s(&tm, &t);
+            #else
+                tm = *std::localtime(&t);
+            #endif
+            std::ostringstream oss;
+            oss << std::put_time(&tm, "%Y-%m-%d %H:%M");
+            const std::string stamp = oss.str();
+
+            // mapeaza dificultatea la text
+            auto difToText = [&](int d) -> const char* {
+                switch (d) {
+                    case 1: return "Usor";
+                    case 2: return "Mediu";
+                    case 3: return "Greu";
+                    case 0: default: return "Oricare";
+                }
+            };
+            const std::string difText = difToText(dificultateSelectata);
+
+            for (const auto& user : utilizatori) {
+                const size_t jucate = user.getIstoric().size();
+                fout << stamp << ", "
+                     << user.getNume() << ", "
+                     << jucate << ", "
+                     << difText << ", "
+                     << user.getAjutoareFolosite() << ", "
+                     << user.getScor() << "\n";
+            }
+        }
+    } catch (...) {
+        std::cout << "[Avertisment] Eroare la scrierea in leaderboard.txt (ignoram si continuam).\n";
     }
 
 }
