@@ -39,7 +39,6 @@ int main() {
         if (text.empty()) { --i; continue; }
 
         // citeste urmatoarea linie pentru a vedea daca avem un "tipInt" sau direct prima varianta
-        std::streampos posInainte = f.tellg();
         std::string linie;
         if (!std::getline(f, linie)) throw EroareFormat("intrebari.txt: intrebare " + std::to_string(i + 1) + ": lipsesc linii pentru format/variante");
         if (!linie.empty() && linie.back() == '\r') linie.pop_back();
